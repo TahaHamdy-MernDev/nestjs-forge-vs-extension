@@ -306,6 +306,13 @@
         "category": "Nest Forge i18n"
       }
     ],
+    "submenus": [
+      {
+        "id": "nestForge.explorerSubmenu",
+        "label": "Nest Forge",
+        "icon": "resources/icon.svg"
+      }
+    ],
     "menus": {
       "view/title": [
         {
@@ -482,6 +489,13 @@
         }
       ],
       "explorer/context": [
+        {
+          "submenu": "nestForge.explorerSubmenu",
+          "group": "7_modification",
+          "when": "explorerResourceIsFolder || (!explorerResourceIsFolder && resourceExtname == .ts)"
+        }
+      ],
+      "nestForge.explorerSubmenu": [
         {
           "command": "nestForge.newFeature",
           "when": "explorerResourceIsFolder",
