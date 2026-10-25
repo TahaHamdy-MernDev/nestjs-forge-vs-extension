@@ -86,8 +86,10 @@ function getAllFilesRecursive(dir: string): string[] {
 
 function replaceWordBoundary(content: string, oldWord: string, newWord: string, isPascalOrCamel: boolean): string {
   if (!oldWord || oldWord === newWord) return content;
+  const isPascal = /^[A-Z]/.test(oldWord);
+  const beforeBoundary = isPascal ? '(?<![A-Z0-9])' : '(?<![a-zA-Z0-9])';
   const afterBoundary = isPascalOrCamel ? '(?![a-z0-9])' : '(?![a-zA-Z0-9])';
-  const regex = new RegExp(`(?<![a-zA-Z0-9])${oldWord}${afterBoundary}`, 'g');
+  const regex = new RegExp(`${beforeBoundary}${oldWord}${afterBoundary}`, 'g');
   return content.replace(regex, newWord);
 }
 
