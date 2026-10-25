@@ -32,18 +32,33 @@ export function registerI18n(
   context.subscriptions.push(diagnosticCollection);
 
   const watcher = vscode.workspace.createFileSystemWatcher('**/src/i18n/**/*.{json,yaml,yml}');
+  let updateDebounceTimer: NodeJS.Timeout | undefined;
   const updateAll = () => {
-    store.reload();
-    typeGen.triggerGeneration();
-    for (const doc of vscode.workspace.textDocuments) {
-      updateDiagnostics(doc);
+    if (updateDebounceTimer) {
+      clearTimeout(updateDebounceTimer);
     }
+    updateDebounceTimer = setTimeout(() => {
+      const isInternalWrite = Date.now() - store.getLastWriteTime() < 600;
+      if (!isInternalWrite) {
+        store.reload();
+      }
+      typeGen.triggerGeneration();
+      for (const doc of vscode.workspace.textDocuments) {
+        updateDiagnostics(doc);
+      }
+    }, 200);
   };
 
   watcher.onDidChange(updateAll);
   watcher.onDidCreate(updateAll);
   watcher.onDidDelete(updateAll);
-  context.subscriptions.push(watcher);
+  context.subscriptions.push(watcher, {
+    dispose: () => {
+      if (updateDebounceTimer) {
+        clearTimeout(updateDebounceTimer);
+      }
+    },
+  });
 
   function updateDiagnostics(document: vscode.TextDocument) {
     if (

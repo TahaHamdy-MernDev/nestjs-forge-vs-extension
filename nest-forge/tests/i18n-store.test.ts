@@ -150,5 +150,55 @@ describe('TranslationStore', () => {
     expect(addBadLang).toBeNull();
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid language'));
   });
+
+  it('PERF-04: fixAllMissing with many missing keys performs one write per file and one reload', async () => {
+    fs.writeFileSync(
+      path.join(i18nDir, 'en', 'auth.json'),
+      JSON.stringify({ login: 'Login', logout: 'Logout', signup: 'Sign up' }, null, 2),
+    );
+    fs.writeFileSync(
+      path.join(i18nDir, 'en', 'users.json'),
+      JSON.stringify({ profile: 'Profile', settings: 'Settings' }, null, 2),
+    );
+
+    const store = new TranslationStore(tmpDir);
+    store.reload();
+
+    const writeSpy = vi.spyOn(store as any, 'writeJsonFile');
+    const reloadSpy = vi.spyOn(store, 'reload');
+
+    const result = await store.fixAllMissing();
+
+    expect(result.fixed).toBe(5);
+    // 2 target files: ar/auth.json and ar/users.json -> exactly 2 writes!
+    expect(writeSpy).toHaveBeenCalledTimes(2);
+    // exactly one reload at the end
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+
+    // Verify written content is complete
+    const authAr = JSON.parse(fs.readFileSync(path.join(i18nDir, 'ar', 'auth.json'), 'utf8'));
+    expect(authAr).toEqual({ login: '', logout: '', signup: '' });
+
+    const usersAr = JSON.parse(fs.readFileSync(path.join(i18nDir, 'ar', 'users.json'), 'utf8'));
+    expect(usersAr).toEqual({ profile: '', settings: '' });
+  });
+
+  it('PERF-04: setKeyValuesBatch collects validation errors and shows ONE summary error message', async () => {
+    const errorSpy = vi.spyOn(vscode.window, 'showErrorMessage');
+    const store = new TranslationStore(tmpDir);
+    store.reload();
+
+    const result = await store.setKeyValuesBatch([
+      { fullKey: 'invalid-no-namespace', lang: 'en', value: '1' },
+      { fullKey: '../bad.escape', lang: 'en', value: '2' },
+      { fullKey: 'auth.badlang', lang: '../escape', value: '3' },
+    ]);
+
+    expect(result.fixed).toBe(0);
+    expect(result.errors.length).toBe(3);
+    // Exactly ONE summary message shown rather than 3 individual messages
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('3 validation errors'));
+  });
 });
 

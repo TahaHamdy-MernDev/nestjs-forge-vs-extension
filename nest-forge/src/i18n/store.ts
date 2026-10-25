@@ -43,6 +43,18 @@ export interface ParityCheckResult {
   typographyIssues: ArabicTypographyIssue[];
 }
 
+export interface BatchTranslationEntry {
+  fullKey: string;
+  lang: string;
+  value: string;
+}
+
+export interface BatchTranslationResult {
+  fixed: number;
+  details: string[];
+  errors: string[];
+}
+
 const PLURAL_KEYS = new Set(['zero', 'one', 'two', 'few', 'many', 'other']);
 
 function isPluralObject(obj: unknown): boolean {
@@ -57,9 +69,22 @@ export class TranslationStore {
   private namespaces = new Set<string>();
   private languages = new Set<string>();
   private i18nDir: string | null = null;
+  private lastWriteTime = 0;
 
   private _onDidUpdate = new vscode.EventEmitter<void>();
   public readonly onDidUpdate = this._onDidUpdate.event;
+
+  public getLastWriteTime(): number {
+    return this.lastWriteTime;
+  }
+
+  protected writeJsonFile(filePath: string, content: unknown): void {
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify(content, null, 2) + '\n',
+      'utf8',
+    );
+  }
 
   constructor(private readonly workspaceRoot: string) {
     this.detectI18nDir();
@@ -456,11 +481,8 @@ export class TranslationStore {
       const leafKey = keyPath[keyPath.length - 1];
       current[leafKey] = value;
 
-      fs.writeFileSync(
-        targetFile,
-        JSON.stringify(content, null, 2) + '\n',
-        'utf8',
-      );
+      this.writeJsonFile(targetFile, content);
+      this.lastWriteTime = Date.now();
 
       this.reload();
       return true;
@@ -549,11 +571,7 @@ export class TranslationStore {
           }
         }
 
-        fs.writeFileSync(
-          targetFile,
-          JSON.stringify(content, null, 2) + '\n',
-          'utf8',
-        );
+        this.writeJsonFile(targetFile, content);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         vscode.window.showErrorMessage(`Nest Forge i18n: Failed to delete key '${fullKey}': ${msg}`);
@@ -562,6 +580,7 @@ export class TranslationStore {
       }
     }
 
+    this.lastWriteTime = Date.now();
     this.reload();
     return true;
   }
@@ -631,28 +650,152 @@ export class TranslationStore {
     };
   }
 
-  public async fixAllMissing(): Promise<{ fixed: number; details: string[] }> {
-    const parity = this.checkParity();
+  public async setKeyValuesBatch(
+    entries: BatchTranslationEntry[],
+  ): Promise<BatchTranslationResult> {
+    const i18nDir = this.getI18nDirectory();
+    if (!i18nDir) {
+      const msg = 'Nest Forge i18n: i18n directory is not configured.';
+      vscode.window.showErrorMessage(msg);
+      return { fixed: 0, details: [], errors: [msg] };
+    }
+
+    const errors: string[] = [];
+    const fileEntriesMap = new Map<string, { keyPath: string[]; value: string; fullKey: string; lang: string }[]>();
+
+    for (const entry of entries) {
+      const { fullKey, lang, value } = entry;
+      if (!fullKey || typeof fullKey !== 'string') {
+        errors.push(`Invalid translation key: key must be a non-empty string.`);
+        continue;
+      }
+
+      const parts = fullKey.split('.');
+      if (parts.length < 2) {
+        errors.push(
+          `Invalid translation key '${fullKey}'. Keys must include a namespace and key path (e.g. 'auth.login').`,
+        );
+        continue;
+      }
+
+      const namespace = parts[0];
+      const keyPath = parts.slice(1);
+
+      const langCheck = validateSafeFileName(lang);
+      if (!langCheck.valid) {
+        errors.push(`Invalid language '${lang}': ${langCheck.error}`);
+        continue;
+      }
+
+      const nsCheck = validateSafeFileName(namespace);
+      if (!nsCheck.valid) {
+        errors.push(`Invalid namespace '${namespace}': ${nsCheck.error}`);
+        continue;
+      }
+
+      if (keyPath.some((p) => !p.trim())) {
+        errors.push(
+          `Invalid translation key '${fullKey}'. Key path segments cannot be empty.`,
+        );
+        continue;
+      }
+
+      const targetFile = path.join(i18nDir, lang, `${namespace}.json`);
+      const pathCheck = validateWorkspacePath(i18nDir, targetFile);
+      if (!pathCheck.valid) {
+        errors.push(`Invalid translation file path for '${fullKey}': ${pathCheck.error}`);
+        continue;
+      }
+
+      let list = fileEntriesMap.get(targetFile);
+      if (!list) {
+        list = [];
+        fileEntriesMap.set(targetFile, list);
+      }
+      list.push({ keyPath, value, fullKey, lang });
+    }
+
     let fixed = 0;
     const details: string[] = [];
+    let filesWritten = 0;
+
+    for (const [targetFile, fileEntries] of fileEntriesMap.entries()) {
+      try {
+        const targetDir = path.dirname(targetFile);
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+
+        let content: Record<string, unknown> = {};
+        if (fs.existsSync(targetFile)) {
+          try {
+            content = JSON.parse(fs.readFileSync(targetFile, 'utf8'));
+          } catch {
+            content = {};
+          }
+        }
+
+        for (const { keyPath, value, fullKey, lang } of fileEntries) {
+          let current: Record<string, unknown> = content;
+          for (let i = 0; i < keyPath.length - 1; i++) {
+            const seg = keyPath[i];
+            if (
+              !current[seg] ||
+              typeof current[seg] !== 'object' ||
+              Array.isArray(current[seg])
+            ) {
+              current[seg] = {};
+            }
+            current = current[seg] as Record<string, unknown>;
+          }
+
+          const leafKey = keyPath[keyPath.length - 1];
+          current[leafKey] = value;
+          fixed++;
+          const langLabel = lang === 'ar' ? 'Arabic (ar)' : lang === 'en' ? 'English (en)' : lang;
+          details.push(`Added "${fullKey}" to ${langLabel}`);
+        }
+
+        this.writeJsonFile(targetFile, content);
+        filesWritten++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`Failed to write '${targetFile}': ${msg}`);
+        console.error(`[Nest Forge i18n] Failed to write batch file ${targetFile}:`, err);
+      }
+    }
+
+    if (errors.length > 0) {
+      if (errors.length === 1) {
+        vscode.window.showErrorMessage(`Nest Forge i18n: ${errors[0]}`);
+      } else {
+        vscode.window.showErrorMessage(
+          `Nest Forge i18n: ${errors.length} validation errors occurred during batch translation update (first error: ${errors[0]})`,
+        );
+      }
+    }
+
+    if (filesWritten > 0) {
+      this.lastWriteTime = Date.now();
+      this.reload();
+    }
+
+    return { fixed, details, errors };
+  }
+
+  public async fixAllMissing(): Promise<{ fixed: number; details: string[]; errors: string[] }> {
+    const parity = this.checkParity();
+    const entries: BatchTranslationEntry[] = [];
 
     for (const item of parity.missingInAr) {
-      const res = await this.addMissingKey(item.key, 'ar', '');
-      if (res) {
-        fixed++;
-        details.push(`Added "${item.key}" to Arabic (ar)`);
-      }
+      entries.push({ fullKey: item.key, lang: 'ar', value: '' });
     }
 
     for (const item of parity.missingInEn) {
-      const res = await this.addMissingKey(item.key, 'en', '');
-      if (res) {
-        fixed++;
-        details.push(`Added "${item.key}" to English (en)`);
-      }
+      entries.push({ fullKey: item.key, lang: 'en', value: '' });
     }
 
-    return { fixed, details };
+    return this.setKeyValuesBatch(entries);
   }
 
   public async findUnusedKeys(): Promise<string[]> {
