@@ -370,8 +370,12 @@ export class FeatureFormPanel {
     const jsUri = webview.asWebviewUri(
       vscode.Uri.file(path.join(basePath, 'form.js')),
     );
+    const namingJsUri = webview.asWebviewUri(
+      vscode.Uri.file(path.join(basePath, 'list-naming.js')),
+    );
 
     html = html.replace('{{CSS_URI}}', cssUri.toString());
+    html = html.replace('{{NAMING_JS_URI}}', namingJsUri.toString());
     html = html.replace('{{JS_URI}}', jsUri.toString());
     html = html.replace(/{{CSP_SOURCE}}/g, webview.cspSource);
 

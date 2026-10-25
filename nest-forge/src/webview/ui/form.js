@@ -4,6 +4,8 @@ const vscode = acquireVsCodeApi();
 const featureNameInput = document.getElementById('featureNameInput');
 const modeFlat = document.getElementById('modeFlat');
 const modeGrouped = document.getElementById('modeGrouped');
+const modeFlatCard = document.getElementById('modeFlatCard');
+const modeGroupedCard = document.getElementById('modeGroupedCard');
 const routePathInput = document.getElementById('routePathInput');
 const targetPathInput = document.getElementById('targetPathInput');
 const parentModuleInput = document.getElementById('parentModuleInput');
@@ -95,15 +97,15 @@ let userManuallyEdited = {
   interfaceFile: false,
 };
 
-let dtoList = ['create', 'update'];
-let eventList = ['created'];
-let listenerList = ['created'];
-let groupedCtrlList = [];
-let groupedSrvList = [];
-let storeList = [];
-let providerList = [];
-let processorList = [];
-let taskList = [];
+let dtoList = [{ suffix: 'create' }, { suffix: 'update' }];
+let eventList = [{ suffix: 'created' }];
+let listenerList = [{ suffix: 'created' }];
+let groupedCtrlList = [{ suffix: '' }];
+let groupedSrvList = [{ suffix: '' }];
+let storeList = [{ suffix: '' }];
+let providerList = [{ suffix: '' }];
+let processorList = [{ suffix: '' }];
+let taskList = [{ suffix: '' }];
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -212,12 +214,15 @@ function deriveNames(raw) {
 }
 
 function syncCurrentDynamicInputs() {
+  const raw = featureNameInput ? featureNameInput.value.trim() : '';
+  const names = deriveNames(raw);
+
   const dtoInputs = document.querySelectorAll('.dto-item-input');
   dtoInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.dto\.ts$/, '');
-    if (val && !isNaN(idx) && idx < dtoList.length) {
-      dtoList[idx] = val;
+    if (!isNaN(idx) && idx < dtoList.length && window.NestForgeListNaming) {
+      dtoList[idx] = window.NestForgeListNaming.applyEdit(dtoList[idx], val, names.kebab, 'dto');
     }
   });
 
@@ -225,8 +230,8 @@ function syncCurrentDynamicInputs() {
   eventInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.event\.ts$/, '');
-    if (val && !isNaN(idx) && idx < eventList.length) {
-      eventList[idx] = val;
+    if (!isNaN(idx) && idx < eventList.length && window.NestForgeListNaming) {
+      eventList[idx] = window.NestForgeListNaming.applyEdit(eventList[idx], val, names.kebab, 'event');
     }
   });
 
@@ -234,8 +239,8 @@ function syncCurrentDynamicInputs() {
   listenerInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.listener\.ts$/, '');
-    if (val && !isNaN(idx) && idx < listenerList.length) {
-      listenerList[idx] = val;
+    if (!isNaN(idx) && idx < listenerList.length && window.NestForgeListNaming) {
+      listenerList[idx] = window.NestForgeListNaming.applyEdit(listenerList[idx], val, names.kebab, 'listener');
     }
   });
 
@@ -243,8 +248,8 @@ function syncCurrentDynamicInputs() {
   ctrlInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.controller\.ts$/, '');
-    if (val && !isNaN(idx) && idx < groupedCtrlList.length) {
-      groupedCtrlList[idx] = val;
+    if (!isNaN(idx) && idx < groupedCtrlList.length && window.NestForgeListNaming) {
+      groupedCtrlList[idx] = window.NestForgeListNaming.applyEdit(groupedCtrlList[idx], val, names.kebab);
     }
   });
 
@@ -252,8 +257,8 @@ function syncCurrentDynamicInputs() {
   srvInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.service\.ts$/, '');
-    if (val && !isNaN(idx) && idx < groupedSrvList.length) {
-      groupedSrvList[idx] = val;
+    if (!isNaN(idx) && idx < groupedSrvList.length && window.NestForgeListNaming) {
+      groupedSrvList[idx] = window.NestForgeListNaming.applyEdit(groupedSrvList[idx], val, names.kebab);
     }
   });
 
@@ -261,17 +266,17 @@ function syncCurrentDynamicInputs() {
   storeInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.store\.ts$/, '');
-    if (val && !isNaN(idx) && idx < storeList.length) {
-      storeList[idx] = val;
+    if (!isNaN(idx) && idx < storeList.length && window.NestForgeListNaming) {
+      storeList[idx] = window.NestForgeListNaming.applyEdit(storeList[idx], val, names.kebab);
     }
   });
 
   const providerInputs = document.querySelectorAll('.provider-item-input');
   providerInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
-    const val = inp.value.trim().replace(/\.provider\.ts$/, '').replace(/\.handler\.ts$/, '');
-    if (val && !isNaN(idx) && idx < providerList.length) {
-      providerList[idx] = val;
+    const val = inp.value.trim().replace(/\.provider\.ts$/, '').replace(/\.ts$/, '');
+    if (!isNaN(idx) && idx < providerList.length && window.NestForgeListNaming) {
+      providerList[idx] = window.NestForgeListNaming.applyEdit(providerList[idx], val, names.kebab);
     }
   });
 
@@ -279,8 +284,8 @@ function syncCurrentDynamicInputs() {
   processorInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.processor\.ts$/, '');
-    if (val && !isNaN(idx) && idx < processorList.length) {
-      processorList[idx] = val;
+    if (!isNaN(idx) && idx < processorList.length && window.NestForgeListNaming) {
+      processorList[idx] = window.NestForgeListNaming.applyEdit(processorList[idx], val, names.kebab);
     }
   });
 
@@ -288,8 +293,8 @@ function syncCurrentDynamicInputs() {
   taskInputs.forEach((inp) => {
     const idx = parseInt(inp.getAttribute('data-index'), 10);
     const val = inp.value.trim().replace(/\.task\.ts$/, '');
-    if (val && !isNaN(idx) && idx < taskList.length) {
-      taskList[idx] = val;
+    if (!isNaN(idx) && idx < taskList.length && window.NestForgeListNaming) {
+      taskList[idx] = window.NestForgeListNaming.applyEdit(taskList[idx], val, names.kebab);
     }
   });
 }
@@ -356,30 +361,6 @@ function onFeatureNameChange() {
     interfaceFileName.value = `${names.kebab}.interface.ts`;
   }
 
-  if (groupedCtrlList.length === 0) {
-    groupedCtrlList = [names.kebab || 'item'];
-  }
-
-  if (groupedSrvList.length === 0) {
-    groupedSrvList = [names.kebab || 'item'];
-  }
-
-  if (storeList.length === 0) {
-    storeList = [`drizzle-${names.kebab || 'item'}`];
-  }
-
-  if (providerList.length === 0) {
-    providerList = ['session-auth'];
-  }
-
-  if (processorList.length === 0) {
-    processorList = [names.kebab || 'item'];
-  }
-
-  if (taskList.length === 0) {
-    taskList = [names.kebab || 'item'];
-  }
-
   renderDynamicLists(true);
   requestPreview();
 }
@@ -398,9 +379,11 @@ function renderDynamicLists(skipSync = false) {
   dtoList.forEach((dto, index) => {
     const row = document.createElement('div');
     row.className = 'dynamic-item';
-    const computed = dto.startsWith(prefix) ? dto : (prefix ? `${dto}-${prefix}` : dto);
+    const clean = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(dto, prefix, 'dto')
+      : (dto.custom || `${dto.suffix || 'create'}-${prefix}`);
     row.innerHTML = `
-      <input type="text" class="code-input dto-item-input" data-index="${index}" value="${escapeHtml(computed)}.dto.ts">
+      <input type="text" class="code-input dto-item-input" data-index="${index}" value="${escapeHtml(clean)}.dto.ts">
       <button type="button" class="btn-remove" data-type="dto" data-index="${index}">${HUGEICONS.cancel}</button>
     `;
     dtoContainer.appendChild(row);
@@ -411,9 +394,11 @@ function renderDynamicLists(skipSync = false) {
   eventList.forEach((evt, index) => {
     const row = document.createElement('div');
     row.className = 'dynamic-item';
-    const computed = evt.startsWith(prefix) ? evt : (prefix ? `${prefix}-${evt}` : evt);
+    const clean = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(evt, prefix, 'event')
+      : (evt.custom || `${prefix}-${evt.suffix || 'created'}`);
     row.innerHTML = `
-      <input type="text" class="code-input event-item-input" data-index="${index}" value="${escapeHtml(computed)}.event.ts">
+      <input type="text" class="code-input event-item-input" data-index="${index}" value="${escapeHtml(clean)}.event.ts">
       <button type="button" class="btn-remove" data-type="event" data-index="${index}">${HUGEICONS.cancel}</button>
     `;
     eventsContainer.appendChild(row);
@@ -424,9 +409,11 @@ function renderDynamicLists(skipSync = false) {
   listenerList.forEach((lis, index) => {
     const row = document.createElement('div');
     row.className = 'dynamic-item';
-    const computed = lis.startsWith(prefix) ? lis : (prefix ? `${prefix}-${lis}` : lis);
+    const clean = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(lis, prefix, 'listener')
+      : (lis.custom || `${prefix}-${lis.suffix || 'created'}`);
     row.innerHTML = `
-      <input type="text" class="code-input listener-item-input" data-index="${index}" value="${escapeHtml(computed)}.listener.ts">
+      <input type="text" class="code-input listener-item-input" data-index="${index}" value="${escapeHtml(clean)}.listener.ts">
       <button type="button" class="btn-remove" data-type="listener" data-index="${index}">${HUGEICONS.cancel}</button>
     `;
     listenersContainer.appendChild(row);
@@ -438,7 +425,9 @@ function renderDynamicLists(skipSync = false) {
     groupedCtrlList.forEach((ctrl, index) => {
       const row = document.createElement('div');
       row.className = 'dynamic-item';
-      const clean = ctrl.replace(/\.controller\.ts$/, '').replace(/\.controller$/, '');
+      const clean = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(ctrl, prefix)
+        : (ctrl.custom || ctrl.suffix || prefix);
       row.innerHTML = `
         <input type="text" class="code-input ctrl-item-input" data-index="${index}" value="${escapeHtml(clean)}.controller.ts">
         <button type="button" class="btn-remove" data-type="ctrl" data-index="${index}">${HUGEICONS.cancel}</button>
@@ -453,7 +442,9 @@ function renderDynamicLists(skipSync = false) {
     groupedSrvList.forEach((srv, index) => {
       const row = document.createElement('div');
       row.className = 'dynamic-item';
-      const clean = srv.replace(/\.service\.ts$/, '').replace(/\.service$/, '');
+      const clean = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(srv, prefix)
+        : (srv.custom || srv.suffix || prefix);
       row.innerHTML = `
         <input type="text" class="code-input srv-item-input" data-index="${index}" value="${escapeHtml(clean)}.service.ts">
         <button type="button" class="btn-remove" data-type="srv" data-index="${index}">${HUGEICONS.cancel}</button>
@@ -468,7 +459,9 @@ function renderDynamicLists(skipSync = false) {
     storeList.forEach((store, index) => {
       const row = document.createElement('div');
       row.className = 'dynamic-item';
-      const clean = store.replace(/\.store\.ts$/, '').replace(/\.store$/, '');
+      const clean = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(store, prefix)
+        : (store.custom || store.suffix || prefix);
       row.innerHTML = `
         <input type="text" class="code-input store-item-input" data-index="${index}" value="${escapeHtml(clean)}.store.ts">
         <button type="button" class="btn-remove" data-type="store" data-index="${index}">${HUGEICONS.cancel}</button>
@@ -483,10 +476,13 @@ function renderDynamicLists(skipSync = false) {
     providerList.forEach((provider, index) => {
       const row = document.createElement('div');
       row.className = 'dynamic-item';
-      let clean = provider.replace(/\.ts$/, '');
-      let ext = clean.endsWith('.handler') ? '' : (clean.endsWith('.provider') ? '' : '.provider');
+      let clean = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(provider, prefix)
+        : (provider.custom || provider.suffix || prefix);
+      clean = clean.replace(/\.ts$/, '');
+      const ext = clean.endsWith('.handler') ? '.ts' : (clean.endsWith('.provider') ? '.ts' : '.provider.ts');
       row.innerHTML = `
-        <input type="text" class="code-input provider-item-input" data-index="${index}" value="${escapeHtml(clean)}${ext}.ts">
+        <input type="text" class="code-input provider-item-input" data-index="${index}" value="${escapeHtml(clean)}${ext}">
         <button type="button" class="btn-remove" data-type="provider" data-index="${index}">${HUGEICONS.cancel}</button>
       `;
       providersContainer.appendChild(row);
@@ -499,7 +495,9 @@ function renderDynamicLists(skipSync = false) {
     processorList.forEach((proc, index) => {
       const row = document.createElement('div');
       row.className = 'dynamic-item';
-      const clean = proc.replace(/\.processor\.ts$/, '').replace(/\.processor$/, '');
+      const clean = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(proc, prefix)
+        : (proc.custom || proc.suffix || prefix);
       row.innerHTML = `
         <input type="text" class="code-input processor-item-input" data-index="${index}" value="${escapeHtml(clean)}.processor.ts">
         <button type="button" class="btn-remove" data-type="processor" data-index="${index}">${HUGEICONS.cancel}</button>
@@ -514,7 +512,9 @@ function renderDynamicLists(skipSync = false) {
     taskList.forEach((task, index) => {
       const row = document.createElement('div');
       row.className = 'dynamic-item';
-      const clean = task.replace(/\.task\.ts$/, '').replace(/\.task$/, '');
+      const clean = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(task, prefix)
+        : (task.custom || task.suffix || prefix);
       row.innerHTML = `
         <input type="text" class="code-input task-item-input" data-index="${index}" value="${escapeHtml(clean)}.task.ts">
         <button type="button" class="btn-remove" data-type="task" data-index="${index}">${HUGEICONS.cancel}</button>
@@ -552,7 +552,7 @@ function getFormState() {
   const storeFiles = storeInputs.map((i) => ({ name: i.value.trim().replace(/\.store\.ts$/, '') })).filter((x) => Boolean(x.name));
 
   const providerInputs = Array.from(document.querySelectorAll('.provider-item-input'));
-  const providerFiles = providerInputs.map((i) => ({ name: i.value.trim().replace(/\.provider\.ts$/, '').replace(/\.handler\.ts$/, '') })).filter((x) => Boolean(x.name));
+  const providerFiles = providerInputs.map((i) => ({ name: i.value.trim().replace(/\.provider\.ts$/, '').replace(/\.ts$/, '') })).filter((x) => Boolean(x.name));
 
   return {
     featureName,
@@ -690,43 +690,63 @@ function renderPreviewTree(plans) {
   previewTree.innerHTML = html;
   fileCountBadge.textContent = `${plans.length} files`;
 
+  const safetyIndicator = document.getElementById('safetyIndicator');
   if (conflictCount > 0) {
     conflictAlert.style.display = 'flex';
+    if (safetyIndicator) {
+      safetyIndicator.classList.remove('safe');
+      safetyIndicator.classList.add('warn');
+      safetyIndicator.querySelector('span:last-child').textContent = `${conflictCount} File Conflict(s)`;
+    }
   } else {
     conflictAlert.style.display = 'none';
+    if (safetyIndicator) {
+      safetyIndicator.classList.remove('warn');
+      safetyIndicator.classList.add('safe');
+      safetyIndicator.querySelector('span:last-child').textContent = 'Collision Guard Active';
+    }
   }
 }
 
 // Event Listeners
-if (modeFlat) {
-  modeFlat.addEventListener('click', () => {
-    structureMode = 'flat';
-    modeFlat.classList.add('active');
-    modeGrouped.classList.remove('active');
+function selectArchitectureMode(mode) {
+  structureMode = mode;
+  if (mode === 'flat') {
+    if (modeFlat) modeFlat.classList.add('active');
+    if (modeGrouped) modeGrouped.classList.remove('active');
+    if (modeFlatCard) modeFlatCard.classList.add('active');
+    if (modeGroupedCard) modeGroupedCard.classList.remove('active');
     if (flatComponentsCard) flatComponentsCard.style.display = 'block';
     if (groupedComponentsCard) groupedComponentsCard.style.display = 'none';
     requestPreview();
-  });
-}
-
-if (modeGrouped) {
-  modeGrouped.addEventListener('click', () => {
+  } else {
     structureMode = 'grouped';
-    modeGrouped.classList.add('active');
-    modeFlat.classList.remove('active');
+    if (modeGrouped) modeGrouped.classList.add('active');
+    if (modeFlat) modeFlat.classList.remove('active');
+    if (modeGroupedCard) modeGroupedCard.classList.add('active');
+    if (modeFlatCard) modeFlatCard.classList.remove('active');
     if (flatComponentsCard) flatComponentsCard.style.display = 'none';
     if (groupedComponentsCard) groupedComponentsCard.style.display = 'block';
 
-    const raw = featureNameInput.value.trim();
-    const names = deriveNames(raw);
-    if (groupedCtrlList.length === 0) groupedCtrlList = [names.kebab || 'item'];
-    if (groupedSrvList.length === 0) groupedSrvList = [names.kebab || 'item'];
-    if (storeList.length === 0) storeList = [`drizzle-${names.kebab || 'item'}`];
-    if (providerList.length === 0) providerList = ['session-auth'];
-
     renderDynamicLists(true);
     requestPreview();
-  });
+  }
+}
+
+if (modeFlat) {
+  modeFlat.addEventListener('click', () => selectArchitectureMode('flat'));
+}
+
+if (modeGrouped) {
+  modeGrouped.addEventListener('click', () => selectArchitectureMode('grouped'));
+}
+
+if (modeFlatCard) {
+  modeFlatCard.addEventListener('click', () => selectArchitectureMode('flat'));
+}
+
+if (modeGroupedCard) {
+  modeGroupedCard.addEventListener('click', () => selectArchitectureMode('grouped'));
 }
 
 featureNameInput.addEventListener('input', onFeatureNameChange);
@@ -823,8 +843,10 @@ dtoContainer.addEventListener('input', (e) => {
   if (e.target.classList.contains('dto-item-input')) {
     const idx = parseInt(e.target.getAttribute('data-index'), 10);
     const val = e.target.value.trim().replace(/\.dto\.ts$/, '');
-    if (val && !isNaN(idx) && idx < dtoList.length) {
-      dtoList[idx] = val;
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    if (!isNaN(idx) && idx < dtoList.length && window.NestForgeListNaming) {
+      dtoList[idx] = window.NestForgeListNaming.applyEdit(dtoList[idx], val, names.kebab, 'dto');
     }
     requestPreview();
   }
@@ -834,8 +856,10 @@ eventsContainer.addEventListener('input', (e) => {
   if (e.target.classList.contains('event-item-input')) {
     const idx = parseInt(e.target.getAttribute('data-index'), 10);
     const val = e.target.value.trim().replace(/\.event\.ts$/, '');
-    if (val && !isNaN(idx) && idx < eventList.length) {
-      eventList[idx] = val;
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    if (!isNaN(idx) && idx < eventList.length && window.NestForgeListNaming) {
+      eventList[idx] = window.NestForgeListNaming.applyEdit(eventList[idx], val, names.kebab, 'event');
     }
     requestPreview();
   }
@@ -845,8 +869,10 @@ listenersContainer.addEventListener('input', (e) => {
   if (e.target.classList.contains('listener-item-input')) {
     const idx = parseInt(e.target.getAttribute('data-index'), 10);
     const val = e.target.value.trim().replace(/\.listener\.ts$/, '');
-    if (val && !isNaN(idx) && idx < listenerList.length) {
-      listenerList[idx] = val;
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    if (!isNaN(idx) && idx < listenerList.length && window.NestForgeListNaming) {
+      listenerList[idx] = window.NestForgeListNaming.applyEdit(listenerList[idx], val, names.kebab, 'listener');
     }
     requestPreview();
   }
@@ -857,8 +883,10 @@ if (groupedCtrlContainer) {
     if (e.target.classList.contains('ctrl-item-input')) {
       const idx = parseInt(e.target.getAttribute('data-index'), 10);
       const val = e.target.value.trim().replace(/\.controller\.ts$/, '');
-      if (val && !isNaN(idx) && idx < groupedCtrlList.length) {
-        groupedCtrlList[idx] = val;
+      const raw = featureNameInput.value.trim();
+      const names = deriveNames(raw);
+      if (!isNaN(idx) && idx < groupedCtrlList.length && window.NestForgeListNaming) {
+        groupedCtrlList[idx] = window.NestForgeListNaming.applyEdit(groupedCtrlList[idx], val, names.kebab);
       }
       requestPreview();
     }
@@ -870,8 +898,10 @@ if (groupedSrvContainer) {
     if (e.target.classList.contains('srv-item-input')) {
       const idx = parseInt(e.target.getAttribute('data-index'), 10);
       const val = e.target.value.trim().replace(/\.service\.ts$/, '');
-      if (val && !isNaN(idx) && idx < groupedSrvList.length) {
-        groupedSrvList[idx] = val;
+      const raw = featureNameInput.value.trim();
+      const names = deriveNames(raw);
+      if (!isNaN(idx) && idx < groupedSrvList.length && window.NestForgeListNaming) {
+        groupedSrvList[idx] = window.NestForgeListNaming.applyEdit(groupedSrvList[idx], val, names.kebab);
       }
       requestPreview();
     }
@@ -883,8 +913,10 @@ if (storesContainer) {
     if (e.target.classList.contains('store-item-input')) {
       const idx = parseInt(e.target.getAttribute('data-index'), 10);
       const val = e.target.value.trim().replace(/\.store\.ts$/, '');
-      if (val && !isNaN(idx) && idx < storeList.length) {
-        storeList[idx] = val;
+      const raw = featureNameInput.value.trim();
+      const names = deriveNames(raw);
+      if (!isNaN(idx) && idx < storeList.length && window.NestForgeListNaming) {
+        storeList[idx] = window.NestForgeListNaming.applyEdit(storeList[idx], val, names.kebab);
       }
       requestPreview();
     }
@@ -895,9 +927,11 @@ if (providersContainer) {
   providersContainer.addEventListener('input', (e) => {
     if (e.target.classList.contains('provider-item-input')) {
       const idx = parseInt(e.target.getAttribute('data-index'), 10);
-      const val = e.target.value.trim().replace(/\.provider\.ts$/, '').replace(/\.handler\.ts$/, '');
-      if (val && !isNaN(idx) && idx < providerList.length) {
-        providerList[idx] = val;
+      const val = e.target.value.trim().replace(/\.provider\.ts$/, '').replace(/\.ts$/, '');
+      const raw = featureNameInput.value.trim();
+      const names = deriveNames(raw);
+      if (!isNaN(idx) && idx < providerList.length && window.NestForgeListNaming) {
+        providerList[idx] = window.NestForgeListNaming.applyEdit(providerList[idx], val, names.kebab);
       }
       requestPreview();
     }
@@ -909,8 +943,10 @@ if (processorsContainer) {
     if (e.target.classList.contains('processor-item-input')) {
       const idx = parseInt(e.target.getAttribute('data-index'), 10);
       const val = e.target.value.trim().replace(/\.processor\.ts$/, '');
-      if (val && !isNaN(idx) && idx < processorList.length) {
-        processorList[idx] = val;
+      const raw = featureNameInput.value.trim();
+      const names = deriveNames(raw);
+      if (!isNaN(idx) && idx < processorList.length && window.NestForgeListNaming) {
+        processorList[idx] = window.NestForgeListNaming.applyEdit(processorList[idx], val, names.kebab);
       }
       requestPreview();
     }
@@ -922,8 +958,10 @@ if (tasksContainer) {
     if (e.target.classList.contains('task-item-input')) {
       const idx = parseInt(e.target.getAttribute('data-index'), 10);
       const val = e.target.value.trim().replace(/\.task\.ts$/, '');
-      if (val && !isNaN(idx) && idx < taskList.length) {
-        taskList[idx] = val;
+      const raw = featureNameInput.value.trim();
+      const names = deriveNames(raw);
+      if (!isNaN(idx) && idx < taskList.length && window.NestForgeListNaming) {
+        taskList[idx] = window.NestForgeListNaming.applyEdit(taskList[idx], val, names.kebab);
       }
       requestPreview();
     }
@@ -932,21 +970,36 @@ if (tasksContainer) {
 
 addDtoBtn.addEventListener('click', () => {
   syncCurrentDynamicInputs();
-  dtoList.push('custom');
+  const raw = featureNameInput.value.trim();
+  const names = deriveNames(raw);
+  const next = window.NestForgeListNaming
+    ? window.NestForgeListNaming.nextItem('dto', dtoList, names.kebab)
+    : { suffix: 'custom' };
+  dtoList.push(next);
   renderDynamicLists(true);
   requestPreview();
 });
 
 addEventBtn.addEventListener('click', () => {
   syncCurrentDynamicInputs();
-  eventList.push('action');
+  const raw = featureNameInput.value.trim();
+  const names = deriveNames(raw);
+  const next = window.NestForgeListNaming
+    ? window.NestForgeListNaming.nextItem('event', eventList, names.kebab)
+    : { suffix: 'action' };
+  eventList.push(next);
   renderDynamicLists(true);
   requestPreview();
 });
 
 addListenerBtn.addEventListener('click', () => {
   syncCurrentDynamicInputs();
-  listenerList.push('action');
+  const raw = featureNameInput.value.trim();
+  const names = deriveNames(raw);
+  const next = window.NestForgeListNaming
+    ? window.NestForgeListNaming.nextItem('listener', listenerList, names.kebab)
+    : { suffix: 'action' };
+  listenerList.push(next);
   renderDynamicLists(true);
   requestPreview();
 });
@@ -954,7 +1007,12 @@ addListenerBtn.addEventListener('click', () => {
 if (addProcessorBtn) {
   addProcessorBtn.addEventListener('click', () => {
     syncCurrentDynamicInputs();
-    processorList.push('worker');
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('processor', processorList, names.kebab)
+      : { suffix: 'worker' };
+    processorList.push(next);
     renderDynamicLists(true);
     requestPreview();
   });
@@ -963,7 +1021,12 @@ if (addProcessorBtn) {
 if (addTaskBtn) {
   addTaskBtn.addEventListener('click', () => {
     syncCurrentDynamicInputs();
-    taskList.push('cron');
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('task', taskList, names.kebab)
+      : { suffix: 'cron' };
+    taskList.push(next);
     renderDynamicLists(true);
     requestPreview();
   });
@@ -972,7 +1035,12 @@ if (addTaskBtn) {
 if (addGroupedCtrlBtn) {
   addGroupedCtrlBtn.addEventListener('click', () => {
     syncCurrentDynamicInputs();
-    groupedCtrlList.push('admin');
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('ctrl', groupedCtrlList, names.kebab)
+      : { suffix: 'admin' };
+    groupedCtrlList.push(next);
     renderDynamicLists(true);
     requestPreview();
   });
@@ -981,7 +1049,12 @@ if (addGroupedCtrlBtn) {
 if (addGroupedSrvBtn) {
   addGroupedSrvBtn.addEventListener('click', () => {
     syncCurrentDynamicInputs();
-    groupedSrvList.push('token');
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('srv', groupedSrvList, names.kebab)
+      : { suffix: 'token' };
+    groupedSrvList.push(next);
     renderDynamicLists(true);
     requestPreview();
   });
@@ -990,7 +1063,12 @@ if (addGroupedSrvBtn) {
 if (addStoreBtn) {
   addStoreBtn.addEventListener('click', () => {
     syncCurrentDynamicInputs();
-    storeList.push('session');
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('store', storeList, names.kebab)
+      : { suffix: 'session' };
+    storeList.push(next);
     renderDynamicLists(true);
     requestPreview();
   });
@@ -999,7 +1077,12 @@ if (addStoreBtn) {
 if (addProviderBtn) {
   addProviderBtn.addEventListener('click', () => {
     syncCurrentDynamicInputs();
-    providerList.push('token-auth');
+    const raw = featureNameInput.value.trim();
+    const names = deriveNames(raw);
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('provider', providerList, names.kebab)
+      : { suffix: 'auth' };
+    providerList.push(next);
     renderDynamicLists(true);
     requestPreview();
   });
@@ -1050,6 +1133,52 @@ forgeBtn.addEventListener('click', () => {
 
 cancelBtn.addEventListener('click', () => {
   vscode.postMessage({ command: 'cancel' });
+});
+
+// Studio Tab Switching & Stepper
+const studioTabs = document.querySelectorAll('.studio-tab');
+const tabPanes = document.querySelectorAll('.tab-pane');
+
+function switchStudioTab(targetId) {
+  studioTabs.forEach((tab) => {
+    const isTarget = tab.getAttribute('data-tab') === targetId;
+    tab.classList.toggle('active', isTarget);
+    tab.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+  });
+
+  tabPanes.forEach((pane) => {
+    pane.classList.toggle('active', pane.id === targetId);
+  });
+}
+
+studioTabs.forEach((tab) => {
+  tab.addEventListener('click', () => {
+    const targetId = tab.getAttribute('data-tab');
+    if (targetId) switchStudioTab(targetId);
+  });
+});
+
+document.addEventListener('click', (e) => {
+  const nextBtn = e.target.closest('[data-next]');
+  if (nextBtn) {
+    const targetId = nextBtn.getAttribute('data-next');
+    if (targetId) switchStudioTab(targetId);
+    return;
+  }
+  const prevBtn = e.target.closest('[data-prev]');
+  if (prevBtn) {
+    const targetId = prevBtn.getAttribute('data-prev');
+    if (targetId) switchStudioTab(targetId);
+  }
+});
+
+// Keyboard shortcuts (Cmd/Ctrl + Enter to trigger scaffold)
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if (forgeBtn && !forgeBtn.disabled) {
+      forgeBtn.click();
+    }
+  }
 });
 
 // Initialize
