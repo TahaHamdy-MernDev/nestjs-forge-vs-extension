@@ -27,6 +27,12 @@
     "ast"
   ],
   "main": "./dist/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Custom workspace templates (.nest-forge/templates) and local code formatters (Biome/Prettier) are disabled in untrusted workspaces."
+    }
+  },
   "activationEvents": [
     "onCommand:nestForge.newFeature",
     "onCommand:nestForge.refreshFeatures",

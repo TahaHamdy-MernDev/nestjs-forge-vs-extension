@@ -1,6 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Eta } from 'eta';
+import * as vscode from 'vscode';
+
+let untrustedTemplateNoticeShown = false;
 
 export class TemplateRenderer {
   private defaultEta: Eta;
@@ -16,12 +19,25 @@ export class TemplateRenderer {
   }
 
   render(templateName: string, context: Record<string, unknown>): string {
+    if (vscode.workspace.isTrusted) {
+      untrustedTemplateNoticeShown = false;
+    }
+
     if (this.customTemplatesDir) {
       const customPath = path.join(this.customTemplatesDir, `${templateName}.eta`);
       try {
         if (fs.existsSync(customPath) && fs.statSync(customPath).isFile()) {
-          const customContent = fs.readFileSync(customPath, 'utf-8');
-          return this.defaultEta.renderString(customContent, context).trim() + '\n';
+          if (!vscode.workspace.isTrusted) {
+            if (!untrustedTemplateNoticeShown) {
+              untrustedTemplateNoticeShown = true;
+              vscode.window.showInformationMessage(
+                'Nest Forge: Custom workspace templates (.nest-forge/templates) are disabled in untrusted workspaces. Using built-in templates instead.',
+              );
+            }
+          } else {
+            const customContent = fs.readFileSync(customPath, 'utf-8');
+            return this.defaultEta.renderString(customContent, context).trim() + '\n';
+          }
         }
       } catch {
         // Fallback to default
