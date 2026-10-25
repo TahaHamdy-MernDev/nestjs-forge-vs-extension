@@ -33,13 +33,20 @@ export function registerI18n(
 
   const watcher = vscode.workspace.createFileSystemWatcher('**/src/i18n/**/*.{json,yaml,yml}');
   let updateDebounceTimer: NodeJS.Timeout | undefined;
-  const updateAll = () => {
+  const pendingChangedPaths = new Set<string>();
+
+  const onWatcherEvent = (uri: vscode.Uri) => {
+    pendingChangedPaths.add(path.normalize(uri.fsPath));
     if (updateDebounceTimer) {
       clearTimeout(updateDebounceTimer);
     }
     updateDebounceTimer = setTimeout(() => {
-      const isInternalWrite = Date.now() - store.getLastWriteTime() < 600;
-      if (!isInternalWrite) {
+      const paths = Array.from(pendingChangedPaths);
+      pendingChangedPaths.clear();
+
+      // Only reload if at least one changed file was NOT written by the store itself
+      const hasExternalChanges = paths.some((p) => !store.isSelfWrite(p));
+      if (hasExternalChanges) {
         store.reload();
       }
       typeGen.triggerGeneration();
@@ -49,9 +56,9 @@ export function registerI18n(
     }, 200);
   };
 
-  watcher.onDidChange(updateAll);
-  watcher.onDidCreate(updateAll);
-  watcher.onDidDelete(updateAll);
+  watcher.onDidChange(onWatcherEvent);
+  watcher.onDidCreate(onWatcherEvent);
+  watcher.onDidDelete(onWatcherEvent);
   context.subscriptions.push(watcher, {
     dispose: () => {
       if (updateDebounceTimer) {

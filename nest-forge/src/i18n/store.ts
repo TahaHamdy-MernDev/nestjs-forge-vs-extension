@@ -71,6 +71,7 @@ export class TranslationStore {
   private i18nDir: string | null = null;
   private lastWriteTime = 0;
   private parityCache: ParityCheckResult | null = null;
+  private selfWriteTimes = new Map<string, number>();
 
   private _onDidUpdate = new vscode.EventEmitter<void>();
   public readonly onDidUpdate = this._onDidUpdate.event;
@@ -79,7 +80,22 @@ export class TranslationStore {
     return this.lastWriteTime;
   }
 
+  public isSelfWrite(filePath: string, windowMs = 300): boolean {
+    const norm = path.normalize(filePath);
+    const writeTime = this.selfWriteTimes.get(norm);
+    if (!writeTime) return false;
+    if (Date.now() - writeTime <= windowMs) {
+      return true;
+    }
+    this.selfWriteTimes.delete(norm);
+    return false;
+  }
+
   protected writeJsonFile(filePath: string, content: unknown): void {
+    const norm = path.normalize(filePath);
+    const now = Date.now();
+    this.selfWriteTimes.set(norm, now);
+    this.lastWriteTime = now;
     fs.writeFileSync(
       filePath,
       JSON.stringify(content, null, 2) + '\n',
