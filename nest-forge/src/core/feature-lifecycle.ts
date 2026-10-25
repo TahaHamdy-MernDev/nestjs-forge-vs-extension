@@ -4,6 +4,7 @@ import { deriveNames } from './naming.js';
 import { registerInParentModule } from './module-registrar.js';
 import { unregisterFromParentModule } from './module-unregistrar.js';
 import { validateSafeFileName } from './path-validator.js';
+import { computeFileHash, getLastScaffoldRecord, saveLastScaffoldRecord } from './scaffold-manifest.js';
 import type { ProjectConventions } from './types.js';
 
 export interface DeleteFeatureOptions {
@@ -18,6 +19,7 @@ export interface RenameFeatureOptions {
   parentModulePath?: string;
   conventions?: Partial<ProjectConventions>;
   i18nDir?: string;
+  workspaceRoot?: string;
 }
 
 export function deleteFeature(options: DeleteFeatureOptions): { success: boolean; error?: string } {
@@ -82,6 +84,28 @@ function getAllFilesRecursive(dir: string): string[] {
   return results;
 }
 
+function replaceWordBoundary(content: string, oldWord: string, newWord: string, isPascalOrCamel: boolean): string {
+  if (!oldWord || oldWord === newWord) return content;
+  const afterBoundary = isPascalOrCamel ? '(?![a-z0-9])' : '(?![a-zA-Z0-9])';
+  const regex = new RegExp(`(?<![a-zA-Z0-9])${oldWord}${afterBoundary}`, 'g');
+  return content.replace(regex, newWord);
+}
+
+function findWorkspaceRoot(startDir: string): string | null {
+  try {
+    let cur = path.resolve(startDir);
+    while (cur && cur !== path.dirname(cur)) {
+      if (fs.existsSync(path.join(cur, '.nest-forge-last.json')) || fs.existsSync(path.join(cur, 'package.json'))) {
+        return cur;
+      }
+      cur = path.dirname(cur);
+    }
+  } catch {
+    // Ignore error
+  }
+  return null;
+}
+
 export function renameFeature(options: RenameFeatureOptions): {
   success: boolean;
   newFeatureDir?: string;
@@ -130,22 +154,29 @@ export function renameFeature(options: RenameFeatureOptions): {
 
         // Order matters: replace longer identifiers first to prevent partial clobbering
         if (oldNames.pluralPascal !== oldNames.pascal) {
-          content = content.replaceAll(oldNames.pluralPascal, newNames.pluralPascal);
+          content = replaceWordBoundary(content, oldNames.pluralPascal, newNames.pluralPascal, true);
         }
         if (oldNames.pluralCamel !== oldNames.camel) {
-          content = content.replaceAll(oldNames.pluralCamel, newNames.pluralCamel);
+          content = replaceWordBoundary(content, oldNames.pluralCamel, newNames.pluralCamel, true);
         }
         if (oldNames.pluralKebab !== oldNames.kebab) {
-          content = content.replaceAll(oldNames.pluralKebab, newNames.pluralKebab);
+          content = replaceWordBoundary(content, oldNames.pluralKebab, newNames.pluralKebab, false);
         }
         if (oldNames.pluralSnake !== oldNames.snake) {
-          content = content.replaceAll(oldNames.pluralSnake, newNames.pluralSnake);
+          content = replaceWordBoundary(content, oldNames.pluralSnake, newNames.pluralSnake, false);
         }
 
-        content = content.replaceAll(oldNames.pascal, newNames.pascal);
-        content = content.replaceAll(oldNames.camel, newNames.camel);
-        content = content.replaceAll(oldNames.kebab, newNames.kebab);
-        content = content.replaceAll(oldNames.snake, newNames.snake);
+        // Upper forms (e.g. AUTH_KEY -> CLIENT_KEY)
+        const oldUpper = oldNames.snake.toUpperCase();
+        const newUpper = newNames.snake.toUpperCase();
+        if (oldUpper !== oldNames.snake) {
+          content = replaceWordBoundary(content, oldUpper, newUpper, false);
+        }
+
+        content = replaceWordBoundary(content, oldNames.pascal, newNames.pascal, true);
+        content = replaceWordBoundary(content, oldNames.camel, newNames.camel, true);
+        content = replaceWordBoundary(content, oldNames.kebab, newNames.kebab, false);
+        content = replaceWordBoundary(content, oldNames.snake, newNames.snake, false);
 
         fs.writeFileSync(filePath, content, 'utf-8');
       }
@@ -154,10 +185,11 @@ export function renameFeature(options: RenameFeatureOptions): {
     // 3. Rename files whose filename contains oldNames.kebab
     // Sort descending by path length so deeply nested files rename before their parents
     const sortedFiles = [...allFiles].sort((a, b) => b.length - a.length);
+    const kebabFileRegex = new RegExp(`(?<![a-zA-Z0-9])${oldNames.kebab}(?![a-zA-Z0-9])`, 'g');
     for (const filePath of sortedFiles) {
       const fileName = path.basename(filePath);
-      if (fileName.includes(oldNames.kebab)) {
-        const newFileName = fileName.replaceAll(oldNames.kebab, newNames.kebab);
+      if (kebabFileRegex.test(fileName)) {
+        const newFileName = fileName.replace(kebabFileRegex, newNames.kebab);
         const newFilePath = path.join(path.dirname(filePath), newFileName);
         fs.renameSync(filePath, newFilePath);
       }
@@ -172,14 +204,19 @@ export function renameFeature(options: RenameFeatureOptions): {
       const newModuleFileName = `${newNames.kebab}.module.ts`;
       const newModulePath = path.join(newFeatureDir, newModuleFileName);
 
-      let relImport = path.relative(path.dirname(parentModulePath), newModulePath).replace(/\\/g, '/');
-      if (!relImport.startsWith('.')) relImport = `./${relImport}`;
-      relImport = relImport.replace(/\.ts$/, '') + importExt;
+      let finalImportPath: string;
+      if (conventions?.pathAlias && conventions.pathAlias.startsWith('@/features')) {
+        finalImportPath = `${conventions.pathAlias}/${newNames.kebab}/${newNames.kebab}.module${importExt}`;
+      } else {
+        let relImport = path.relative(path.dirname(parentModulePath), newModulePath).replace(/\\/g, '/');
+        if (!relImport.startsWith('.')) relImport = `./${relImport}`;
+        finalImportPath = relImport.replace(/\.ts$/, '') + importExt;
+      }
 
       registerInParentModule({
         parentModulePath,
         featureModuleClassName: `${newNames.pascal}Module`,
-        featureModuleImportPath: relImport,
+        featureModuleImportPath: finalImportPath,
       });
     }
 
@@ -199,6 +236,50 @@ export function renameFeature(options: RenameFeatureOptions): {
         }
       } catch {
         // Ignore i18n rename errors
+      }
+    }
+
+    // 7. Update undo manifest (.nest-forge-last.json) if present
+    const rootDir = options.workspaceRoot || (parentModulePath ? findWorkspaceRoot(path.dirname(parentModulePath)) : findWorkspaceRoot(parentDir));
+    if (rootDir) {
+      const record = getLastScaffoldRecord(rootDir);
+      if (record && (record.featureName === oldNames.kebab || record.featureName === oldFeatureName)) {
+        record.featureName = newNames.kebab;
+        record.moduleClassName = `${newNames.pascal}Module`;
+
+        const kebabRegex = new RegExp(`(?<![a-zA-Z0-9])${oldNames.kebab}(?![a-zA-Z0-9])`, 'g');
+        record.targetPath = record.targetPath.replace(kebabRegex, newNames.kebab);
+        if (record.importSpecifier) {
+          if (conventions?.pathAlias && conventions.pathAlias.startsWith('@/features')) {
+            const importExt = conventions?.importExtension ?? '.js';
+            record.importSpecifier = `${conventions.pathAlias}/${newNames.kebab}/${newNames.kebab}.module${importExt}`;
+          } else {
+            record.importSpecifier = record.importSpecifier.replace(kebabRegex, newNames.kebab);
+          }
+        }
+
+        const updatedFiles: string[] = [];
+        const newHashes: Record<string, string> = {};
+        for (const oldFile of record.createdFiles) {
+          const relInsideFeature = path.relative(featureDir, oldFile);
+          let newFilePath: string;
+          if (!relInsideFeature.startsWith('..') && !path.isAbsolute(relInsideFeature)) {
+            const newRel = relInsideFeature.replace(kebabRegex, newNames.kebab);
+            newFilePath = path.join(newFeatureDir, newRel);
+          } else {
+            newFilePath = oldFile;
+          }
+          updatedFiles.push(newFilePath);
+          if (fs.existsSync(newFilePath)) {
+            const h = computeFileHash(newFilePath);
+            if (h) {
+              newHashes[newFilePath] = h;
+            }
+          }
+        }
+        record.createdFiles = updatedFiles;
+        record.fileHashes = newHashes;
+        saveLastScaffoldRecord(rootDir, record);
       }
     }
 

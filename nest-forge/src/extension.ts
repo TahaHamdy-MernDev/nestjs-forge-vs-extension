@@ -1534,6 +1534,7 @@ export function activate(context: vscode.ExtensionContext) {
         parentModulePath: fs.existsSync(parentModulePath) ? parentModulePath : undefined,
         conventions,
         i18nDir,
+        workspaceRoot,
       });
 
       if (fs.existsSync(parentModulePath)) {
