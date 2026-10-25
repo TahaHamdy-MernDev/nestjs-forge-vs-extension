@@ -153,7 +153,11 @@ export class FeatureFormPanel {
               const plans = buildPlan(state, this._conventions, this._workspaceRoot);
               this._panel.webview.postMessage({
                 command: 'previewUpdated',
-                plans,
+                plans: plans.map((p) => ({
+                  relativePath: p.relativePath,
+                  exists: p.exists,
+                  templateName: p.templateName,
+                })),
               });
             } catch {
               // Ignore invalid input while user is typing in form

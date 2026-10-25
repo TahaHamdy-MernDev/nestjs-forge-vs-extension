@@ -589,13 +589,19 @@ function getFormState() {
   };
 }
 
+let previewDebounceTimer = null;
 function requestPreview() {
-  const state = getFormState();
-  if (!state.featureName) return;
-  vscode.postMessage({
-    command: 'updatePreview',
-    state,
-  });
+  if (previewDebounceTimer) {
+    clearTimeout(previewDebounceTimer);
+  }
+  previewDebounceTimer = setTimeout(() => {
+    const state = getFormState();
+    if (!state.featureName) return;
+    vscode.postMessage({
+      command: 'updatePreview',
+      state,
+    });
+  }, 100);
 }
 
 // Listen to messages from extension host
