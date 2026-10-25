@@ -589,7 +589,21 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     fs.writeFileSync(targetFile, content, 'utf-8');
-    await formatFiles([targetFile], workspaceRoot, conventions.formatter);
+
+    // Auto-wire into module
+    const moduleFile = path.join(featureDir, `${featureNames.kebab}.module.ts`);
+    const filesToFormat = [targetFile];
+    if (fs.existsSync(moduleFile)) {
+      wireComponentIntoModule({
+        modulePath: moduleFile,
+        className: `${listenerNames.pascal}Listener`,
+        importPath: computeRelativeImport(moduleFile, targetFile, conventions.importExtension),
+        targetArrays: ['providers'],
+      });
+      filesToFormat.push(moduleFile);
+    }
+
+    await formatFiles(filesToFormat, workspaceRoot, conventions.formatter);
 
     treeProvider.refresh();
     const doc = await vscode.workspace.openTextDocument(targetFile);

@@ -268,7 +268,28 @@ export function buildPlan(
       }
     }
 
-    // 10. Module (at feature root)
+    // 10. Listeners
+    if (state.includeListeners && state.listenerFiles && state.listenerFiles.length > 0) {
+      const listenerDirAbs = path.join(targetDirAbs, 'listeners');
+      for (const listener of state.listenerFiles) {
+        if (!listener.name) continue;
+        const baseName = listener.name.replace(/\.listener\.ts$/, '').replace(/\.ts$/, '');
+        const listenerNames = deriveNames(baseName);
+        const listenerClassName = `${listenerNames.pascal}Listener`;
+        const listenerFileName = `${baseName}.listener.ts`;
+        const importPath = getImportSpecifier(`listeners/${baseName}.listener`, names.kebab, conventions);
+
+        moduleProviders.push({ className: listenerClassName, importPath });
+
+        addPlan(listenerDirAbs, listenerFileName, 'listener', {
+          listenerName: baseName,
+          listenerNames,
+          listenerClassName,
+        });
+      }
+    }
+
+    // 11. Module (at feature root)
     const moduleFileName = state.moduleFileName || `${names.kebab}.module.ts`;
     addPlan(targetDirAbs, moduleFileName, 'module', {
       moduleControllers,
@@ -386,6 +407,27 @@ export function buildPlan(
       }
     }
 
+    // Listeners
+    if (state.includeListeners && state.listenerFiles && state.listenerFiles.length > 0) {
+      const listenerDirAbs = path.join(targetDirAbs, 'listeners');
+      for (const listener of state.listenerFiles) {
+        if (!listener.name) continue;
+        const baseName = listener.name.replace(/\.listener\.ts$/, '').replace(/\.ts$/, '');
+        const listenerNames = deriveNames(baseName);
+        const listenerClassName = `${listenerNames.pascal}Listener`;
+        const listenerFileName = `${baseName}.listener.ts`;
+        const importPath = `./listeners/${baseName}.listener${conventions.importExtension}`;
+
+        moduleProviders.push({ className: listenerClassName, importPath });
+
+        addPlan(listenerDirAbs, listenerFileName, 'listener', {
+          listenerName: baseName,
+          listenerNames,
+          listenerClassName,
+        });
+      }
+    }
+
     addPlan(targetDirAbs, modFile, 'module', {
       moduleControllers,
       moduleProviders,
@@ -440,21 +482,6 @@ export function buildPlan(
         eventName: baseName,
         eventNames,
         eventClassName: `${eventNames.pascal}Event`,
-      });
-    }
-  }
-
-  // Common Listeners
-  if (state.includeListeners && state.listenerFiles && state.listenerFiles.length > 0) {
-    const listenerDirAbs = path.join(targetDirAbs, 'listeners');
-    for (const listener of state.listenerFiles) {
-      if (!listener.name) continue;
-      const baseName = listener.name.replace(/\.listener\.ts$/, '').replace(/\.ts$/, '');
-      const listenerNames = deriveNames(baseName);
-      addPlan(listenerDirAbs, `${baseName}.listener.ts`, 'listener', {
-        listenerName: baseName,
-        listenerNames,
-        listenerClassName: `${listenerNames.pascal}Listener`,
       });
     }
   }
