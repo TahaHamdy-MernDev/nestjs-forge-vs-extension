@@ -11,7 +11,15 @@ export class <%= it.names.pascal %>Repository {
   ) {}
 }
 <% } else if (it.conventions.orm === 'prisma') { %>
-import { PrismaService } from '@/infrastructure/prisma/prisma.service<%= it.conventions.importExtension %>';
+<%
+const aliasBase = it.conventions.pathAlias
+  ? it.conventions.pathAlias.replace(/\/features\/?$/, '').replace(/\/+$/, '')
+  : '';
+const prismaImport = aliasBase
+  ? (aliasBase + '/infrastructure/prisma/prisma.service' + it.conventions.importExtension)
+  : ('../../infrastructure/prisma/prisma.service' + it.conventions.importExtension);
+%>
+import { PrismaService } from '<%= prismaImport %>';
 
 @Injectable()
 export class <%= it.names.pascal %>Repository {

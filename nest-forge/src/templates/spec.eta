@@ -4,10 +4,12 @@ import { describe, expect, it, beforeEach } from 'vitest';
 <% } %>
 import { <%= it.targetClass %> } from './<%= it.targetFileName.replace(/\.ts$/, '') %><%= it.conventions.importExtension %>';
 <% if (it.specType === 'Service' && it.state.includeRepository) { %>
-import { <%= it.names.pascal %>Repository } from './<%= it.names.kebab %>.repository<%= it.conventions.importExtension %>';
+<% const repoImport = it.repositoryImportPath || ('./' + it.names.kebab + '.repository' + it.conventions.importExtension); %>
+import { <%= it.names.pascal %>Repository } from '<%= repoImport %>';
 <% } %>
 <% if (it.specType === 'Controller') { %>
-import { <%= it.names.pascal %>Service } from './<%= it.names.kebab %>.service<%= it.conventions.importExtension %>';
+<% const srvImport = it.serviceImportPath || ('./' + it.names.kebab + '.service' + it.conventions.importExtension); %>
+import { <%= it.names.pascal %>Service } from '<%= srvImport %>';
 <% } %>
 
 describe('<%= it.targetClass %>', () => {

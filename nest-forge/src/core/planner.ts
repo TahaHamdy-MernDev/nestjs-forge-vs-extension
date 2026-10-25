@@ -114,6 +114,7 @@ export function buildPlan(
           targetClass: ctrlClassName,
           targetFileName: ctrlFileName,
           serviceClassName: primaryServiceName,
+          serviceImportPath,
         });
       }
     }
@@ -151,6 +152,7 @@ export function buildPlan(
           targetClass: srvClassName,
           targetFileName: srvFileName,
           repositoryClassName: repoClassName,
+          repositoryImportPath: repoImportPath,
         });
       }
     }
