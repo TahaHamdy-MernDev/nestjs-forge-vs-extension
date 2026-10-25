@@ -85,4 +85,33 @@ describe('SEC-01: Matrix Webview hardening', () => {
     expect(capturedHtml).toContain('data-action="jump"');
     expect(capturedHtml).toContain('data-action="delete"');
   });
+
+  it('CORR-12: disposes store.onDidUpdate listener when panel is disposed', () => {
+    const postMessageSpy = vi.fn();
+
+    vi.spyOn(vscode.window, 'createWebviewPanel').mockImplementation(() => ({
+      webview: {
+        html: '',
+        postMessage: postMessageSpy,
+        onDidReceiveMessage: () => ({ dispose: () => {} }),
+      },
+      onDidDispose: () => ({ dispose: () => {} }),
+      reveal: () => {},
+      dispose: () => {},
+    }) as any);
+
+    const panel = MatrixWebviewPanel.createOrShow(vscode.Uri.file(tmpDir), store);
+    postMessageSpy.mockClear();
+
+    // While active, store.reload() triggers updateData -> webview.postMessage
+    store.reload();
+    expect(postMessageSpy).toHaveBeenCalledTimes(1);
+
+    // After dispose(), store.reload() must NOT trigger updateData on the disposed panel
+    panel.dispose();
+    postMessageSpy.mockClear();
+    store.reload();
+    expect(postMessageSpy).toHaveBeenCalledTimes(0);
+  });
 });
+

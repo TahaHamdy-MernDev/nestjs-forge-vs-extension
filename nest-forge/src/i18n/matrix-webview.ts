@@ -131,9 +131,11 @@ export class MatrixWebviewPanel {
     );
 
     // Listen to store updates
-    this.store.onDidUpdate(() => {
-      this.updateData();
-    });
+    this.disposables.push(
+      this.store.onDidUpdate(() => {
+        this.updateData();
+      }),
+    );
   }
 
   public updateData(): void {
