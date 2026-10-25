@@ -104,6 +104,8 @@ export class FeatureFormPanel {
       featuresDir: cfg.get<string>('featuresDir'),
       parentModule: cfg.get<string>('parentModule'),
       orm: cfg.get<'drizzle' | 'prisma' | 'typeorm' | 'none'>('orm'),
+      validator: cfg.get<'class-validator' | 'zod' | 'none'>('validator'),
+      formatter: cfg.get<'biome' | 'prettier' | 'none'>('formatter'),
       importExtension: cfg.get<string>('importExtension'),
       pathAlias: cfg.get<string>('pathAlias'),
       controllerVersion: cfg.get<string>('controllerVersion'),

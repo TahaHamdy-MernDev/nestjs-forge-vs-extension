@@ -752,6 +752,26 @@
           "default": "snake_case",
           "description": "Naming convention for constructor injected parameters"
         },
+        "nestForge.validator": {
+          "type": "string",
+          "enum": [
+            "class-validator",
+            "zod",
+            "none"
+          ],
+          "default": "class-validator",
+          "description": "Default validation library used for DTO and schema generation"
+        },
+        "nestForge.formatter": {
+          "type": "string",
+          "enum": [
+            "biome",
+            "prettier",
+            "none"
+          ],
+          "default": "biome",
+          "description": "Code formatter used after scaffolding files ('biome', 'prettier', or 'none')"
+        },
         "nestForge.i18nDir": {
           "type": "string",
           "default": "src/i18n",
