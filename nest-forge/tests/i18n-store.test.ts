@@ -1,7 +1,9 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
+import * as pathValidator from '../src/core/path-validator.js';
 import { TranslationStore } from '../src/i18n/store.js';
 
 describe('TranslationStore', () => {
@@ -16,6 +18,7 @@ describe('TranslationStore', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -97,4 +100,55 @@ describe('TranslationStore', () => {
     // because items.count is a valid plural object existing in both languages.
     expect(parity.missingInEn).toHaveLength(0);
   });
+
+  it('rejects unsafe lang or namespace in setKeyValue with a clear error message and prevents traversal outside i18nDir', async () => {
+    const errorSpy = vi.spyOn(vscode.window, 'showErrorMessage');
+    const safeNameSpy = vi.spyOn(pathValidator, 'validateSafeFileName');
+    const wsPathSpy = vi.spyOn(pathValidator, 'validateWorkspacePath');
+
+    const store = new TranslationStore(tmpDir);
+    store.reload();
+
+    const badLangOk = await store.setKeyValue('auth.login', '../outside', 'Hacked');
+    expect(badLangOk).toBe(false);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid language'));
+    expect(fs.existsSync(path.join(tmpDir, 'src', 'outside', 'auth.json'))).toBe(false);
+
+    errorSpy.mockClear();
+    const badNsOk = await store.setKeyValue('../../pwned.login', 'en', 'Hacked');
+    expect(badNsOk).toBe(false);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid namespace'));
+    expect(fs.existsSync(path.join(tmpDir, 'pwned.json'))).toBe(false);
+
+    // Valid call should use both validateSafeFileName and validateWorkspacePath(i18nDir, ...)
+    const validOk = await store.setKeyValue('auth.login', 'en', 'Log in');
+    expect(validOk).toBe(true);
+    expect(safeNameSpy).toHaveBeenCalledWith('en');
+    expect(safeNameSpy).toHaveBeenCalledWith('auth');
+    expect(wsPathSpy).toHaveBeenCalledWith(
+      i18nDir,
+      path.join(i18nDir, 'en', 'auth.json'),
+    );
+  });
+
+  it('rejects unsafe namespace or key in deleteKey and addMissingKey with clear error messages', async () => {
+    const errorSpy = vi.spyOn(vscode.window, 'showErrorMessage');
+    const store = new TranslationStore(tmpDir);
+    store.reload();
+
+    const delOk = await store.deleteKey('../escape.secret');
+    expect(delOk).toBe(false);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid namespace'));
+
+    errorSpy.mockClear();
+    const addRes = await store.addMissingKey('foo/bar.baz', 'en', 'val');
+    expect(addRes).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid namespace'));
+
+    errorSpy.mockClear();
+    const addBadLang = await store.addMissingKey('auth.welcome', '../ar', 'val');
+    expect(addBadLang).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid language'));
+  });
 });
+

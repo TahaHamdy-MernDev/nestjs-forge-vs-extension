@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { validateSafeFileName, validateWorkspacePath } from '../core/path-validator.js';
 import { ArabicTypographyIssue, lintArabicText } from './arabic-linter.js';
 
 export interface TranslationEntry {
@@ -377,14 +378,52 @@ export class TranslationStore {
     value: string,
   ): Promise<boolean> {
     const i18nDir = this.getI18nDirectory();
-    if (!i18nDir) return false;
+    if (!i18nDir) {
+      vscode.window.showErrorMessage('Nest Forge i18n: i18n directory is not configured.');
+      return false;
+    }
+
+    if (!fullKey || typeof fullKey !== 'string') {
+      vscode.window.showErrorMessage('Nest Forge i18n: Invalid translation key: key must be a non-empty string.');
+      return false;
+    }
 
     const parts = fullKey.split('.');
-    if (parts.length < 2) return false;
+    if (parts.length < 2) {
+      vscode.window.showErrorMessage(
+        `Nest Forge i18n: Invalid translation key '${fullKey}'. Keys must include a namespace and key path (e.g. 'auth.login').`,
+      );
+      return false;
+    }
 
     const namespace = parts[0];
     const keyPath = parts.slice(1);
+
+    const langCheck = validateSafeFileName(lang);
+    if (!langCheck.valid) {
+      vscode.window.showErrorMessage(`Nest Forge i18n: Invalid language '${lang}': ${langCheck.error}`);
+      return false;
+    }
+
+    const nsCheck = validateSafeFileName(namespace);
+    if (!nsCheck.valid) {
+      vscode.window.showErrorMessage(`Nest Forge i18n: Invalid namespace '${namespace}': ${nsCheck.error}`);
+      return false;
+    }
+
+    if (keyPath.some((p) => !p.trim())) {
+      vscode.window.showErrorMessage(
+        `Nest Forge i18n: Invalid translation key '${fullKey}'. Key path segments cannot be empty.`,
+      );
+      return false;
+    }
+
     const targetFile = path.join(i18nDir, lang, `${namespace}.json`);
+    const pathCheck = validateWorkspacePath(i18nDir, targetFile);
+    if (!pathCheck.valid) {
+      vscode.window.showErrorMessage(`Nest Forge i18n: Invalid translation file path: ${pathCheck.error}`);
+      return false;
+    }
 
     try {
       const targetDir = path.dirname(targetFile);
@@ -426,6 +465,8 @@ export class TranslationStore {
       this.reload();
       return true;
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`Nest Forge i18n: Failed to save translation key '${fullKey}': ${msg}`);
       console.error(`[Nest Forge i18n] Failed to set key value for ${fullKey}:`, err);
       return false;
     }
@@ -433,16 +474,54 @@ export class TranslationStore {
 
   public async deleteKey(fullKey: string): Promise<boolean> {
     const i18nDir = this.getI18nDirectory();
-    if (!i18nDir) return false;
+    if (!i18nDir) {
+      vscode.window.showErrorMessage('Nest Forge i18n: i18n directory is not configured.');
+      return false;
+    }
+
+    if (!fullKey || typeof fullKey !== 'string') {
+      vscode.window.showErrorMessage('Nest Forge i18n: Invalid translation key: key must be a non-empty string.');
+      return false;
+    }
 
     const parts = fullKey.split('.');
-    if (parts.length < 2) return false;
+    if (parts.length < 2) {
+      vscode.window.showErrorMessage(
+        `Nest Forge i18n: Invalid translation key '${fullKey}'. Keys must include a namespace and key path.`,
+      );
+      return false;
+    }
 
     const namespace = parts[0];
     const keyPath = parts.slice(1);
 
+    const nsCheck = validateSafeFileName(namespace);
+    if (!nsCheck.valid) {
+      vscode.window.showErrorMessage(`Nest Forge i18n: Invalid namespace '${namespace}': ${nsCheck.error}`);
+      return false;
+    }
+
+    if (keyPath.some((p) => !p.trim())) {
+      vscode.window.showErrorMessage(
+        `Nest Forge i18n: Invalid translation key '${fullKey}'. Key path segments cannot be empty.`,
+      );
+      return false;
+    }
+
     for (const lang of Array.from(this.languages)) {
+      const langCheck = validateSafeFileName(lang);
+      if (!langCheck.valid) {
+        vscode.window.showErrorMessage(`Nest Forge i18n: Invalid language '${lang}': ${langCheck.error}`);
+        return false;
+      }
+
       const targetFile = path.join(i18nDir, lang, `${namespace}.json`);
+      const pathCheck = validateWorkspacePath(i18nDir, targetFile);
+      if (!pathCheck.valid) {
+        vscode.window.showErrorMessage(`Nest Forge i18n: Invalid translation file path: ${pathCheck.error}`);
+        return false;
+      }
+
       if (!fs.existsSync(targetFile)) continue;
 
       try {
@@ -476,7 +555,10 @@ export class TranslationStore {
           'utf8',
         );
       } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        vscode.window.showErrorMessage(`Nest Forge i18n: Failed to delete key '${fullKey}': ${msg}`);
         console.error(`[Nest Forge i18n] Failed to delete key in ${targetFile}:`, err);
+        return false;
       }
     }
 
@@ -489,15 +571,57 @@ export class TranslationStore {
     targetLang: string,
     initialValue = '',
   ): Promise<{ uri: vscode.Uri; range?: vscode.Range } | null> {
+    const i18nDir = this.getI18nDirectory();
+    if (!i18nDir) {
+      vscode.window.showErrorMessage('Nest Forge i18n: i18n directory is not configured.');
+      return null;
+    }
+
+    if (!fullKey || typeof fullKey !== 'string') {
+      vscode.window.showErrorMessage('Nest Forge i18n: Invalid translation key: key must be a non-empty string.');
+      return null;
+    }
+
+    const parts = fullKey.split('.');
+    if (parts.length < 2) {
+      vscode.window.showErrorMessage(
+        `Nest Forge i18n: Invalid translation key '${fullKey}'. Keys must include a namespace and key path (e.g. 'auth.login').`,
+      );
+      return null;
+    }
+
+    const namespace = parts[0];
+    const keyPath = parts.slice(1);
+
+    const langCheck = validateSafeFileName(targetLang);
+    if (!langCheck.valid) {
+      vscode.window.showErrorMessage(`Nest Forge i18n: Invalid language '${targetLang}': ${langCheck.error}`);
+      return null;
+    }
+
+    const nsCheck = validateSafeFileName(namespace);
+    if (!nsCheck.valid) {
+      vscode.window.showErrorMessage(`Nest Forge i18n: Invalid namespace '${namespace}': ${nsCheck.error}`);
+      return null;
+    }
+
+    if (keyPath.some((p) => !p.trim())) {
+      vscode.window.showErrorMessage(
+        `Nest Forge i18n: Invalid translation key '${fullKey}'. Key path segments cannot be empty.`,
+      );
+      return null;
+    }
+
+    const targetFile = path.join(i18nDir, targetLang, `${namespace}.json`);
+    const pathCheck = validateWorkspacePath(i18nDir, targetFile);
+    if (!pathCheck.valid) {
+      vscode.window.showErrorMessage(`Nest Forge i18n: Invalid translation file path: ${pathCheck.error}`);
+      return null;
+    }
+
     const ok = await this.setKeyValue(fullKey, targetLang, initialValue);
     if (!ok) return null;
 
-    const i18nDir = this.getI18nDirectory();
-    if (!i18nDir) return null;
-
-    const parts = fullKey.split('.');
-    const namespace = parts[0];
-    const targetFile = path.join(i18nDir, targetLang, `${namespace}.json`);
     const uri = vscode.Uri.file(targetFile);
     const entry = this.getKey(fullKey);
 
