@@ -70,6 +70,7 @@ export class TranslationStore {
   private languages = new Set<string>();
   private i18nDir: string | null = null;
   private lastWriteTime = 0;
+  private parityCache: ParityCheckResult | null = null;
 
   private _onDidUpdate = new vscode.EventEmitter<void>();
   public readonly onDidUpdate = this._onDidUpdate.event;
@@ -126,6 +127,7 @@ export class TranslationStore {
     this.entries.clear();
     this.namespaces.clear();
     this.languages.clear();
+    this.parityCache = null;
 
     const i18nDir = this.getI18nDirectory();
     if (!i18nDir || !fs.existsSync(i18nDir)) {
@@ -297,6 +299,10 @@ export class TranslationStore {
   }
 
   public checkParity(): ParityCheckResult {
+    if (this.parityCache) {
+      return this.parityCache;
+    }
+
     const missingInAr: ParityIssueItem[] = [];
     const missingInEn: ParityIssueItem[] = [];
     const emptyValues: EmptyValueIssueItem[] = [];
@@ -381,7 +387,7 @@ export class TranslationStore {
       }
     }
 
-    return {
+    const result: ParityCheckResult = {
       ok:
         missingInAr.length === 0 &&
         missingInEn.length === 0 &&
@@ -395,6 +401,9 @@ export class TranslationStore {
       placeholderMismatches,
       typographyIssues,
     };
+
+    this.parityCache = result;
+    return result;
   }
 
   public async setKeyValue(

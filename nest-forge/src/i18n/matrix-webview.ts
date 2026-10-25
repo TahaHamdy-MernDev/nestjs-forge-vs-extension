@@ -141,6 +141,7 @@ export class MatrixWebviewPanel {
   public updateData(): void {
     const entries = this.store.getAllKeys().filter((e) => !e.isPlural);
     const parity = this.store.checkParity();
+    const typoKeySet = new Set(parity.typographyIssues.map((t) => t.key));
 
     const data = entries.map((entry) => {
       const en = entry.values['en'] ?? null;
@@ -151,8 +152,8 @@ export class MatrixWebviewPanel {
       else if (ar !== null && en === null) status = 'missing-en';
       else if (en === '' || ar === '') status = 'empty';
 
-      // Check for typography issue in Arabic
-      const hasTypo = parity.typographyIssues.some((t) => t.key === entry.key);
+      // Check for typography issue in Arabic using indexed Set
+      const hasTypo = typoKeySet.has(entry.key);
 
       return {
         key: entry.key,
@@ -734,8 +735,14 @@ export class MatrixWebviewPanel {
       });
     });
 
+    let searchDebounceTimer = null;
     searchInput.addEventListener('input', () => {
-      renderTable();
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+      searchDebounceTimer = setTimeout(() => {
+        renderTable();
+      }, 150);
     });
 
     document.getElementById('reloadBtn').addEventListener('click', () => {
