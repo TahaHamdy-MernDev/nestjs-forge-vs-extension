@@ -18,24 +18,25 @@ describe('PERF-01: Activation events hygiene', () => {
     expect(events).not.toContain('workspaceContains:**/node_modules/@nestjs/core');
   });
 
-  it('includes targeted workspaceContains for nest-cli.json and i18n folders', () => {
-    const hasNestCli = events.some((e) => e.includes('nest-cli.json'));
-    expect(hasNestCli).toBe(true);
-
-    const hasI18n = events.some((e) => e.includes('i18n'));
-    expect(hasI18n).toBe(true);
+  it('does not contain redundant onCommand entries since engines.vscode >= 1.74', () => {
+    const onCommands = events.filter((e) => e.startsWith('onCommand:'));
+    expect(onCommands).toEqual([]);
   });
 
-  it('preserves on demand activation for all contributed views', () => {
-    expect(events).toContain('onView:nestForge.featuresView');
-    expect(events).toContain('onView:nestForge.i18nKeysView');
-    expect(events).toContain('onView:nestForge.i18nParityView');
+  it('does not contain overly broad i18n workspaceContains triggers', () => {
+    expect(events).not.toContain('workspaceContains:**/i18n/**');
+    expect(events).not.toContain('workspaceContains:i18n/**');
   });
 
-  it('preserves on demand activation for all contributed commands', () => {
-    const contributedCommands: { command: string }[] = pkg.contributes?.commands || [];
-    for (const cmd of contributedCommands) {
-      expect(events).toContain(`onCommand:${cmd.command}`);
-    }
+  it('contains exactly the required targeted activation events', () => {
+    expect(events).toEqual([
+      'onView:nestForge.featuresView',
+      'onView:nestForge.i18nKeysView',
+      'onView:nestForge.i18nParityView',
+      'workspaceContains:**/nest-cli.json',
+      'workspaceContains:nest-cli.json',
+      'workspaceContains:**/src/i18n/**',
+      'workspaceContains:src/i18n/**',
+    ]);
   });
 });
