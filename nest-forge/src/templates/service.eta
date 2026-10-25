@@ -1,0 +1,17 @@
+import { Injectable } from '@nestjs/common';
+<% const srvClass = it.serviceClassName || (it.names.pascal + 'Service'); %>
+<% const repoClass = it.repositoryClassName || (it.names.pascal + 'Repository'); %>
+<% const repoImport = it.repositoryImportPath || ('./' + it.names.kebab + '.repository' + it.conventions.importExtension); %>
+<% const repoParam = it.conventions.paramStyle === 'snake_case' ? it.names.snake + '_repository' : it.names.camel + 'Repository'; %>
+<% if (it.state && it.state.includeRepository) { %>
+import { <%= repoClass %> } from '<%= repoImport %>';
+<% } %>
+
+@Injectable()
+export class <%= srvClass %> {
+  constructor(
+<% if (it.state && it.state.includeRepository) { %>
+    readonly <%= repoParam %>: <%= repoClass %>,
+<% } %>
+  ) {}
+}

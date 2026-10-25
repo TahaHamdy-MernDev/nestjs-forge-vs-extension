@@ -1,0 +1,7 @@
+{
+  "CREATED": "<%= it.featureTitleAr ? (`تم إنشاء ${it.featureTitleAr} بنجاح.`) : (`تم إنشاء ${it.names.pascal} بنجاح.`) %>",
+  "UPDATED": "<%= it.featureTitleAr ? (`تم حفظ تعديلات ${it.featureTitleAr} بنجاح.`) : (`تم حفظ تعديلات ${it.names.pascal} بنجاح.`) %>",
+  "DELETED": "<%= it.featureTitleAr ? (`تم حذف ${it.featureTitleAr} بنجاح.`) : (`تم حذف ${it.names.pascal} بنجاح.`) %>",
+  "NOT_FOUND": "<%= it.featureTitleAr ? (`لم نتمكن من العثور على ${it.featureTitleAr} المطلوب.`) : (`لم نتمكن من العثور على ${it.names.pascal} المطلوب.`) %>",
+  "ALREADY_EXISTS": "<%= it.featureTitleAr ? (`هذا ${it.featureTitleAr} مسجل بالفعل في النظام.`) : (`هذا السجل مسجل بالفعل في النظام.`) %>"
+}

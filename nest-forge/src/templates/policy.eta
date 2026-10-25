@@ -1,0 +1,9 @@
+import { Policy, type PolicyBefore } from '@nestjs/authorization';
+import type { PolicyUser } from '@/features/auth/auth.interface<%= it.conventions.importExtension %>';
+
+@Policy()
+export class <%= it.policyClassName || (it.names.pascal + 'Policy') %> implements PolicyBefore<PolicyUser> {
+  before(user: PolicyUser) {
+    return user ? undefined : false;
+  }
+}

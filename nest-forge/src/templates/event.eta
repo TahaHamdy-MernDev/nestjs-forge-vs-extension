@@ -1,0 +1,6 @@
+export class <%= it.eventClassName %> {
+  constructor(
+    public readonly <%= it.names.snake %>_id: string,
+    public readonly payload: Record<string, unknown> = {},
+  ) {}
+}

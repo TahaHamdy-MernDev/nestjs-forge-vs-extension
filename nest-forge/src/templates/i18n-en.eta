@@ -1,0 +1,7 @@
+{
+  "CREATED": "<%= it.featureTitleEn ? (`${it.featureTitleEn} created successfully.`) : (`${it.names.pascal} created successfully.`) %>",
+  "UPDATED": "<%= it.featureTitleEn ? (`${it.featureTitleEn} updated successfully.`) : (`${it.names.pascal} updated successfully.`) %>",
+  "DELETED": "<%= it.featureTitleEn ? (`${it.featureTitleEn} removed successfully.`) : (`${it.names.pascal} removed successfully.`) %>",
+  "NOT_FOUND": "<%= it.featureTitleEn ? (`We couldn't find this ${it.featureTitleEn.toLowerCase()}.`) : (`We couldn't find this ${it.names.kebab}.`) %>",
+  "ALREADY_EXISTS": "<%= it.featureTitleEn ? (`This ${it.featureTitleEn.toLowerCase()} already exists.`) : (`This ${it.names.kebab} already exists.`) %>"
+}

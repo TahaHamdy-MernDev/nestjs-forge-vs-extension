@@ -1,0 +1,10 @@
+import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+
+@Injectable()
+export class <%= it.listenerClassName %> {
+  @OnEvent('<%= it.names.kebab %>.<%= it.listenerNames.kebab %>')
+  handle(payload: Record<string, unknown>): void {
+    // Process event
+  }
+}

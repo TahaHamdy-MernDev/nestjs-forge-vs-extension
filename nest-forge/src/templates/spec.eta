@@ -1,0 +1,47 @@
+import { Test, type TestingModule } from '@nestjs/testing';
+<% if (it.conventions.testRunner === 'vitest') { %>
+import { describe, expect, it, beforeEach } from 'vitest';
+<% } %>
+import { <%= it.targetClass %> } from './<%= it.targetFileName.replace(/\.ts$/, '') %><%= it.conventions.importExtension %>';
+<% if (it.specType === 'Service' && it.state.includeRepository) { %>
+import { <%= it.names.pascal %>Repository } from './<%= it.names.kebab %>.repository<%= it.conventions.importExtension %>';
+<% } %>
+<% if (it.specType === 'Controller') { %>
+import { <%= it.names.pascal %>Service } from './<%= it.names.kebab %>.service<%= it.conventions.importExtension %>';
+<% } %>
+
+describe('<%= it.targetClass %>', () => {
+  let sut: <%= it.targetClass %>;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        <%= it.targetClass %>,
+<% if (it.specType === 'Service' && it.state.includeRepository) { %>
+        {
+          provide: <%= it.names.pascal %>Repository,
+          useValue: {},
+        },
+<% } %>
+<% if (it.specType === 'Controller') { %>
+        {
+          provide: <%= it.names.pascal %>Service,
+          useValue: {},
+        },
+<% } %>
+<% if (it.specType === 'Repository' && it.conventions.orm === 'drizzle') { %>
+        {
+          provide: 'DRIZZLE_PG_CLIENT',
+          useValue: {},
+        },
+<% } %>
+      ],
+    }).compile();
+
+    sut = module.get<<%= it.targetClass %>>(<%= it.targetClass %>);
+  });
+
+  it('should be defined', () => {
+    expect(sut).toBeDefined();
+  });
+});

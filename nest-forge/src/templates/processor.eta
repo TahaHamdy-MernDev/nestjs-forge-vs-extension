@@ -1,0 +1,18 @@
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Logger } from '@nestjs/common';
+import type { Job } from 'bullmq';
+
+@Processor('<%= it.queueName %>')
+export class <%= it.processorClassName %> extends WorkerHost {
+  private readonly logger = new Logger(<%= it.processorClassName %>.name);
+
+  async process(job: Job<unknown, unknown, string>): Promise<unknown> {
+    this.logger.debug(`Processing job ${job.id} of type ${job.name}`);
+    return {};
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(`Job ${job?.id} failed with error: ${error.message}`, error.stack);
+  }
+}

@@ -1,0 +1,36 @@
+import { Injectable } from '@nestjs/common';
+<% if (it.conventions.orm === 'drizzle') { %>
+import { InjectDrizzle } from '@nestjs/drizzle';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+
+@Injectable()
+export class <%= it.names.pascal %>Repository {
+  constructor(
+    @InjectDrizzle()
+    private readonly db: NodePgDatabase,
+  ) {}
+}
+<% } else if (it.conventions.orm === 'prisma') { %>
+import { PrismaService } from '@/infrastructure/prisma/prisma.service<%= it.conventions.importExtension %>';
+
+@Injectable()
+export class <%= it.names.pascal %>Repository {
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
+}
+<% } else if (it.conventions.orm === 'typeorm') { %>
+import { DataSource } from 'typeorm';
+
+@Injectable()
+export class <%= it.names.pascal %>Repository {
+  constructor(
+    private readonly dataSource: DataSource,
+  ) {}
+}
+<% } else { %>
+@Injectable()
+export class <%= it.names.pascal %>Repository {
+  constructor() {}
+}
+<% } %>

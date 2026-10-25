@@ -1,0 +1,795 @@
+{
+  "name": "nest-forge",
+  "displayName": "Nest Forge",
+  "description": "Interactive NestJS feature module generator for VS Code / Antigravity with live preview and AST-based registration",
+  "version": "0.2.0",
+  "publisher": "taha",
+  "icon": "resources/logo.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taha/nest-forge"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "nestjs",
+    "scaffold",
+    "generator",
+    "drizzle",
+    "feature",
+    "architecture",
+    "ast"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:nestForge.newFeature",
+    "onCommand:nestForge.refreshFeatures",
+    "onCommand:nestForge.undoLastScaffold",
+    "onCommand:nestForge.ejectTemplates",
+    "onCommand:nestForge.addDto",
+    "onCommand:nestForge.addRepository",
+    "onCommand:nestForge.addEvent",
+    "onCommand:nestForge.addListener",
+    "onCommand:nestForge.addController",
+    "onCommand:nestForge.addService",
+    "onCommand:nestForge.addProvider",
+    "onCommand:nestForge.addStore",
+    "onCommand:nestForge.addPolicy",
+    "onCommand:nestForge.addProcessor",
+    "onCommand:nestForge.addTask",
+    "onCommand:nestForge.addI18nCatalog",
+    "onCommand:nestForge.initI18n",
+    "onCommand:nestForge.injectInto",
+    "onCommand:nestForge.wireFileIntoModule",
+    "onCommand:nestForge.generateSpecForFile",
+    "onCommand:nestForge.renameFeature",
+    "onCommand:nestForge.deleteFeature",
+    "onView:nestForge.featuresView",
+    "onView:nestForge.i18nKeysView",
+    "onView:nestForge.i18nParityView",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:json",
+    "onLanguage:jsonc",
+    "workspaceContains:**/nest-cli.json",
+    "workspaceContains:**/node_modules/@nestjs/core",
+    "workspaceContains:**/src/i18n/**"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "nestForge.newFeature",
+        "title": "NestJS: New Feature",
+        "category": "Nest Forge",
+        "icon": "$(add)"
+      },
+      {
+        "command": "nestForge.refreshFeatures",
+        "title": "Refresh Features",
+        "category": "Nest Forge",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "nestForge.undoLastScaffold",
+        "title": "Undo Last Scaffold",
+        "category": "Nest Forge",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "nestForge.ejectTemplates",
+        "title": "Eject Templates to Workspace",
+        "category": "Nest Forge",
+        "icon": "$(file-submodule)"
+      },
+      {
+        "command": "nestForge.addController",
+        "title": "Add Controller",
+        "category": "Nest Forge",
+        "icon": "$(symbol-method)"
+      },
+      {
+        "command": "nestForge.addService",
+        "title": "Add Service",
+        "category": "Nest Forge",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "nestForge.addRepository",
+        "title": "Add Repository",
+        "category": "Nest Forge",
+        "icon": "$(database)"
+      },
+      {
+        "command": "nestForge.addProvider",
+        "title": "Add Provider / Handler",
+        "category": "Nest Forge",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "nestForge.addStore",
+        "title": "Add Store",
+        "category": "Nest Forge",
+        "icon": "$(archive)"
+      },
+      {
+        "command": "nestForge.addPolicy",
+        "title": "Add Policy",
+        "category": "Nest Forge",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "nestForge.addProcessor",
+        "title": "Add BullMQ Processor",
+        "category": "Nest Forge",
+        "icon": "$(server-process)"
+      },
+      {
+        "command": "nestForge.addTask",
+        "title": "Add Scheduled Task (Cron)",
+        "category": "Nest Forge",
+        "icon": "$(watch)"
+      },
+      {
+        "command": "nestForge.injectInto",
+        "title": "Inject Into...",
+        "category": "Nest Forge",
+        "icon": "$(symbol-interface)"
+      },
+      {
+        "command": "nestForge.wireFileIntoModule",
+        "title": "Wire into Module",
+        "category": "Nest Forge",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "nestForge.generateSpecForFile",
+        "title": "Generate Unit Test Spec",
+        "category": "Nest Forge",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "nestForge.renameFeature",
+        "title": "Rename Feature",
+        "category": "Nest Forge",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "nestForge.deleteFeature",
+        "title": "Delete Feature",
+        "category": "Nest Forge",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "nestForge.addDto",
+        "title": "Add DTO",
+        "category": "Nest Forge",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "nestForge.addEvent",
+        "title": "Add Event",
+        "category": "Nest Forge",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "nestForge.addListener",
+        "title": "Add Listener",
+        "category": "Nest Forge",
+        "icon": "$(radio-tower)"
+      },
+      {
+        "command": "nestForge.addI18nCatalog",
+        "title": "Add i18n Translation Catalog (EN & AR)",
+        "category": "Nest Forge",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "nestForge.initI18n",
+        "title": "Initialize @nestjs/i18n Structure",
+        "category": "Nest Forge",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "nestForge.i18n.openMatrix",
+        "title": "Open Translation Matrix Table",
+        "category": "Nest Forge i18n",
+        "icon": "$(table)"
+      },
+      {
+        "command": "nestForge.i18n.reload",
+        "title": "Reload Translation Keys",
+        "category": "Nest Forge i18n",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "nestForge.i18n.checkParity",
+        "title": "Check Key Parity (AR vs EN)",
+        "category": "Nest Forge i18n",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "nestForge.i18n.fixAllMissingKeys",
+        "title": "Auto-Fix All Missing Keys",
+        "category": "Nest Forge i18n",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "nestForge.i18n.generateTypes",
+        "title": "Sync TypeScript Types (src/i18n/translations.ts)",
+        "category": "Nest Forge i18n",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "nestForge.i18n.findUnusedKeys",
+        "title": "Scan for Unused Keys in Codebase",
+        "category": "Nest Forge i18n",
+        "icon": "$(search-stop)"
+      },
+      {
+        "command": "nestForge.i18n.addMissingKey",
+        "title": "Insert Missing Key",
+        "category": "Nest Forge i18n",
+        "icon": "$(add)"
+      },
+      {
+        "command": "nestForge.i18n.copyKey",
+        "title": "Copy Key Name",
+        "category": "Nest Forge i18n",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "nestForge.i18n.copyI18nCall",
+        "title": "Copy as i18nService.t('...')",
+        "category": "Nest Forge i18n"
+      },
+      {
+        "command": "nestForge.i18n.copyStandaloneT",
+        "title": "Copy as t('...')",
+        "category": "Nest Forge i18n"
+      },
+      {
+        "command": "nestForge.i18n.copyValidationMessage",
+        "title": "Copy as i18nValidationMessage('...')",
+        "category": "Nest Forge i18n"
+      },
+      {
+        "command": "nestForge.i18n.copyResponseMessage",
+        "title": "Copy as @ResponseMessage('...')",
+        "category": "Nest Forge i18n"
+      },
+      {
+        "command": "nestForge.i18n.findUsages",
+        "title": "Find Usages in Codebase",
+        "category": "Nest Forge i18n",
+        "icon": "$(search)"
+      },
+      {
+        "command": "nestForge.i18n.openKeyLocation",
+        "title": "Jump to Translation Definition",
+        "category": "Nest Forge i18n"
+      },
+      {
+        "command": "nestForge.i18n.createKeyFromCode",
+        "title": "Create Translation Key",
+        "category": "Nest Forge i18n"
+      },
+      {
+        "command": "nestForge.i18n.extractStringToKey",
+        "title": "Extract String to @nestjs/i18n Key",
+        "category": "Nest Forge i18n"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "nestForge.newFeature",
+          "when": "view == nestForge.featuresView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "nestForge.undoLastScaffold",
+          "when": "view == nestForge.featuresView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "nestForge.refreshFeatures",
+          "when": "view == nestForge.featuresView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "nestForge.i18n.openMatrix",
+          "when": "view == nestForge.i18nKeysView || view == nestForge.i18nParityView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "nestForge.i18n.reload",
+          "when": "view == nestForge.i18nKeysView || view == nestForge.i18nParityView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "nestForge.i18n.generateTypes",
+          "when": "view == nestForge.i18nKeysView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "nestForge.i18n.findUnusedKeys",
+          "when": "view == nestForge.i18nKeysView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "nestForge.i18n.fixAllMissingKeys",
+          "when": "view == nestForge.i18nParityView",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "nestForge.wireFileIntoModule",
+          "when": "view == nestForge.featuresView && viewItem =~ /_orphan/",
+          "group": "inline@1"
+        },
+        {
+          "command": "nestForge.generateSpecForFile",
+          "when": "view == nestForge.featuresView && viewItem =~ /_nospec/",
+          "group": "inline@2"
+        },
+        {
+          "command": "nestForge.wireFileIntoModule",
+          "when": "view == nestForge.featuresView && viewItem =~ /_orphan/",
+          "group": "0_health@1"
+        },
+        {
+          "command": "nestForge.generateSpecForFile",
+          "when": "view == nestForge.featuresView && viewItem =~ /_nospec/",
+          "group": "0_health@2"
+        },
+        {
+          "command": "nestForge.injectInto",
+          "when": "view == nestForge.featuresView && viewItem =~ /_injectable/",
+          "group": "0_dependency@1"
+        },
+        {
+          "command": "nestForge.addController",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "nestForge.addService",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@2"
+        },
+        {
+          "command": "nestForge.addRepository",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@3"
+        },
+        {
+          "command": "nestForge.addProvider",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@4"
+        },
+        {
+          "command": "nestForge.addStore",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@5"
+        },
+        {
+          "command": "nestForge.addPolicy",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@6"
+        },
+        {
+          "command": "nestForge.addProcessor",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@7"
+        },
+        {
+          "command": "nestForge.addTask",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "1_modification@8"
+        },
+        {
+          "command": "nestForge.addDto",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "2_support@1"
+        },
+        {
+          "command": "nestForge.addEvent",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "2_support@2"
+        },
+        {
+          "command": "nestForge.addListener",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "2_support@3"
+        },
+        {
+          "command": "nestForge.addI18nCatalog",
+          "when": "view == nestForge.featuresView && (viewItem == featureRoot || viewItem == featureFolder || viewItem == featureSubfolder)",
+          "group": "2_support@4"
+        },
+        {
+          "command": "nestForge.renameFeature",
+          "when": "view == nestForge.featuresView && viewItem == featureRoot",
+          "group": "9_lifecycle@1"
+        },
+        {
+          "command": "nestForge.deleteFeature",
+          "when": "view == nestForge.featuresView && viewItem == featureRoot",
+          "group": "9_lifecycle@2"
+        },
+        {
+          "command": "nestForge.i18n.addMissingKey",
+          "when": "viewItem =~ /^missing-key/",
+          "group": "inline"
+        },
+        {
+          "command": "nestForge.i18n.copyKey",
+          "when": "viewItem =~ /^(key|missing-key)/",
+          "group": "1_copy@1"
+        },
+        {
+          "command": "nestForge.i18n.copyI18nCall",
+          "when": "viewItem =~ /^key/",
+          "group": "1_copy@2"
+        },
+        {
+          "command": "nestForge.i18n.copyStandaloneT",
+          "when": "viewItem =~ /^key/",
+          "group": "1_copy@3"
+        },
+        {
+          "command": "nestForge.i18n.copyValidationMessage",
+          "when": "viewItem =~ /^key/",
+          "group": "1_copy@4"
+        },
+        {
+          "command": "nestForge.i18n.copyResponseMessage",
+          "when": "viewItem =~ /^key/",
+          "group": "1_copy@5"
+        },
+        {
+          "command": "nestForge.i18n.findUsages",
+          "when": "viewItem =~ /^(key|missing-key)/",
+          "group": "2_search@1"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "nestForge.newFeature",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@1"
+        },
+        {
+          "command": "nestForge.addController",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@2"
+        },
+        {
+          "command": "nestForge.addService",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@3"
+        },
+        {
+          "command": "nestForge.addRepository",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@4"
+        },
+        {
+          "command": "nestForge.addProvider",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@5"
+        },
+        {
+          "command": "nestForge.addStore",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@6"
+        },
+        {
+          "command": "nestForge.addPolicy",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@7"
+        },
+        {
+          "command": "nestForge.addProcessor",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@8"
+        },
+        {
+          "command": "nestForge.addTask",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@9"
+        },
+        {
+          "command": "nestForge.injectInto",
+          "when": "!explorerResourceIsFolder && resourceExtname == .ts",
+          "group": "7_modification@10"
+        },
+        {
+          "command": "nestForge.addDto",
+          "when": "explorerResourceIsFolder",
+          "group": "8_support@1"
+        },
+        {
+          "command": "nestForge.addEvent",
+          "when": "explorerResourceIsFolder",
+          "group": "8_support@2"
+        },
+        {
+          "command": "nestForge.addListener",
+          "when": "explorerResourceIsFolder",
+          "group": "8_support@3"
+        },
+        {
+          "command": "nestForge.addI18nCatalog",
+          "when": "explorerResourceIsFolder",
+          "group": "8_support@4"
+        },
+        {
+          "command": "nestForge.initI18n",
+          "when": "explorerResourceIsFolder",
+          "group": "8_support@5"
+        },
+        {
+          "command": "nestForge.renameFeature",
+          "when": "explorerResourceIsFolder",
+          "group": "9_lifecycle@1"
+        },
+        {
+          "command": "nestForge.deleteFeature",
+          "when": "explorerResourceIsFolder",
+          "group": "9_lifecycle@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "nestForge.injectInto",
+          "when": "resourceExtname == .ts",
+          "group": "1_modification@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "nestForge.newFeature",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.undoLastScaffold",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.ejectTemplates",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addController",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addService",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addRepository",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addProvider",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addStore",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addPolicy",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addProcessor",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addTask",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addI18nCatalog",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.initI18n",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.injectInto",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.wireFileIntoModule",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.generateSpecForFile",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.renameFeature",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.deleteFeature",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addDto",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addEvent",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.addListener",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.refreshFeatures",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.i18n.openMatrix",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.i18n.reload",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.i18n.checkParity",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.i18n.fixAllMissingKeys",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.i18n.generateTypes",
+          "when": "true"
+        },
+        {
+          "command": "nestForge.i18n.findUnusedKeys",
+          "when": "true"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Nest Forge",
+      "properties": {
+        "nestForge.featuresDir": {
+          "type": "string",
+          "default": "src/features",
+          "description": "Default directory where new features are placed"
+        },
+        "nestForge.parentModule": {
+          "type": "string",
+          "default": "src/features/features.module.ts",
+          "description": "Default parent module to register new feature modules in"
+        },
+        "nestForge.orm": {
+          "type": "string",
+          "enum": [
+            "drizzle",
+            "prisma",
+            "typeorm",
+            "none"
+          ],
+          "default": "drizzle",
+          "description": "Default ORM for repository generation"
+        },
+        "nestForge.importExtension": {
+          "type": "string",
+          "default": ".js",
+          "description": "File extension to append to import statements (e.g. '.js' for NodeNext ESM)"
+        },
+        "nestForge.pathAlias": {
+          "type": "string",
+          "default": "@/features",
+          "description": "Path alias for cross-module imports (e.g. '@/features')"
+        },
+        "nestForge.controllerVersion": {
+          "type": "string",
+          "default": "1",
+          "description": "Default API version for @Controller({ version: '...' })"
+        },
+        "nestForge.paramStyle": {
+          "type": "string",
+          "enum": [
+            "snake_case",
+            "camelCase"
+          ],
+          "default": "snake_case",
+          "description": "Naming convention for constructor injected parameters"
+        },
+        "nestForge.i18nDir": {
+          "type": "string",
+          "default": "src/i18n",
+          "description": "Directory where translation JSON catalogs are stored"
+        },
+        "nestForge.i18nDefaultLocale": {
+          "type": "string",
+          "default": "en",
+          "description": "Default locale used for src/i18n/translations.ts TypeScript module augmentation"
+        },
+        "nestForge.i18nAutoSyncTypes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically update src/i18n/translations.ts when translation catalogs change"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "nest-forge-sidebar",
+          "title": "Nest Forge",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "nest-forge-sidebar": [
+        {
+          "id": "nestForge.featuresView",
+          "name": "Features"
+        },
+        {
+          "id": "nestForge.i18nKeysView",
+          "name": "Translation Keys Explorer"
+        },
+        {
+          "id": "nestForge.i18nParityView",
+          "name": "Parity & Health Issues"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "nestForge.featuresView",
+        "contents": "No NestJS features detected in src/features/.\n[Create New Feature](command:nestForge.newFeature)"
+      },
+      {
+        "view": "nestForge.i18nKeysView",
+        "contents": "No translation catalogs detected in src/i18n/.\n[Initialize @nestjs/i18n Structure](command:nestForge.initI18n)"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@babel/parser": "^8.0.7",
+    "eta": "^4.6.0",
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

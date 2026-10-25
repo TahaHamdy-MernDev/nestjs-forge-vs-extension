@@ -1,0 +1,79 @@
+import { Module } from '@nestjs/common';
+<%
+  const defaultCtrlImport = './' + (it.state && it.state.controllerFileName ? it.state.controllerFileName.replace(/\.ts$/, '') : it.names.kebab + '.controller') + it.conventions.importExtension;
+  const ctrls = it.moduleControllers || it.controllers || (it.state && it.state.controllerFileName === '' ? [] : [
+    { className: it.names.pascal + 'Controller', importPath: defaultCtrlImport }
+  ]);
+
+  const srvImport = './' + (it.state && it.state.serviceFileName ? it.state.serviceFileName.replace(/\.ts$/, '') : it.names.kebab + '.service') + it.conventions.importExtension;
+  const repoImport = './' + (it.state && it.state.repositoryFileName ? it.state.repositoryFileName.replace(/\.ts$/, '') : it.names.kebab + '.repository') + it.conventions.importExtension;
+
+  const defaultProviders = [
+    { className: it.names.pascal + 'Service', importPath: srvImport },
+    ...(it.state && it.state.includeRepository ? [{ className: it.names.pascal + 'Repository', importPath: repoImport }] : [])
+  ];
+
+  let provs;
+  if (it.moduleProviders) {
+    provs = it.moduleProviders;
+  } else if (it.services || it.stores || it.providers || it.processors || it.tasks) {
+    provs = [
+      ...(it.services || []),
+      ...(it.stores || []),
+      ...(it.providers || []),
+      ...(it.processors || []),
+      ...(it.tasks || []),
+    ];
+  } else {
+    provs = defaultProviders;
+  }
+
+  let exps;
+  if (it.moduleExports) {
+    exps = it.moduleExports;
+  } else if (it.services || it.stores) {
+    exps = [
+      ...(it.services || []),
+      ...(it.stores || []),
+    ];
+  } else {
+    exps = provs;
+  }
+
+  const allImports = new Map();
+  for (const c of ctrls) {
+    if (!allImports.has(c.className)) allImports.set(c.className, c.importPath);
+  }
+  for (const p of provs) {
+    if (!allImports.has(p.className)) allImports.set(p.className, p.importPath);
+  }
+%>
+<% for (const [className, importPath] of allImports.entries()) { %>
+import { <%= className %> } from '<%= importPath %>';
+<% } %>
+
+@Module({
+<% if (ctrls.length === 1) { %>
+  controllers: [<%= ctrls[0].className %>],
+<% } else if (ctrls.length > 1) { %>
+  controllers: [
+<% for (const c of ctrls) { %>
+    <%= c.className %>,
+<% } %>
+  ],
+<% } else { %>
+  controllers: [],
+<% } %>
+  providers: [
+<% for (const p of provs) { %>
+    <%= p.className %>,
+<% } %>
+  ],
+  exports: [
+<% for (const e of exps) { %>
+    <%= e.className %>,
+<% } %>
+  ],
+})
+export class <%= it.names.pascal %>Module {}
+

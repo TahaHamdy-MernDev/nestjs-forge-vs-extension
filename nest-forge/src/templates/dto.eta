@@ -1,0 +1,21 @@
+<% if (it.conventions.validator === 'class-validator') { %>
+import { IsNotEmpty, IsString } from 'class-validator';
+
+export class <%= it.dtoClassName %> {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+}
+<% } else if (it.conventions.validator === 'zod') { %>
+import { z } from 'zod';
+
+export const <%= it.dtoSchemaName %> = z.object({
+  name: z.string().min(1),
+});
+
+export type <%= it.dtoClassName %> = z.infer<typeof <%= it.dtoSchemaName %>>;
+<% } else { %>
+export class <%= it.dtoClassName %> {
+  name!: string;
+}
+<% } %>

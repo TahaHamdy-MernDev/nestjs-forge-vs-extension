@@ -1,0 +1,19 @@
+import { Controller } from '@nestjs/common';
+<% const srvClass = it.serviceClassName || (it.names.pascal + 'Service'); %>
+<% const srvImport = it.serviceImportPath || ('./' + it.names.kebab + '.service' + it.conventions.importExtension); %>
+<% const ctrlClass = it.controllerClassName || (it.names.pascal + 'Controller'); %>
+<% const pathName = it.routePath || it.names.pluralKebab; %>
+<% const paramName = it.serviceParamName || (it.conventions.paramStyle === 'snake_case' ? it.names.snake + '_service' : it.names.camel + 'Service'); %>
+import { <%= srvClass %> } from '<%= srvImport %>';
+
+@Controller({
+  path: '<%= pathName %>',
+<% if (it.conventions.controllerVersion) { %>
+  version: '<%= it.conventions.controllerVersion %>',
+<% } %>
+})
+export class <%= ctrlClass %> {
+  constructor(
+    readonly <%= paramName %>: <%= srvClass %>,
+  ) {}
+}

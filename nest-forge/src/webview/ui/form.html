@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src {{CSP_SOURCE}} https: data:; style-src {{CSP_SOURCE}} 'unsafe-inline'; script-src {{CSP_SOURCE}};">
+  <link rel="stylesheet" href="{{CSS_URI}}">
+  <title>Nest Forge: New Feature</title>
+</head>
+<body>
+  <div class="forge-container">
+    <header class="forge-header">
+      <div class="brand">
+        <span class="icon">
+          <svg class="hi-icon" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19h16" />
+            <path d="M8 19v-2.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5V19" />
+            <path d="M3 10.5h18c.55 0 1 .45 1 1v1c0 1.38-1.12 2.5-2.5 2.5H6.5C4.57 15 3 13.43 3 11.5v-1z" />
+            <path d="M14 2.5l-2.5 4h3.5L12 10" />
+          </svg>
+        </span>
+        <div class="brand-text">
+          <h1>Nest Forge</h1>
+          <p class="subtitle">Architect and scaffold clean NestJS feature modules</p>
+        </div>
+      </div>
+      <div class="preset-pill" id="presetPill">Drizzle • Class-Validator</div>
+    </header>
+
+    <main class="forge-layout">
+      <!-- Left Column: Configuration Form -->
+      <section class="form-column">
+        <!-- Feature Identification Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Feature Specification</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="featureNameInput">Feature Name <span class="required">*</span></label>
+              <input type="text" id="featureNameInput" placeholder="e.g. user, order-item, payment-method" autofocus autocomplete="off">
+              <div class="hint">Type the feature name once; casing variants and route paths derive automatically.</div>
+            </div>
+
+            <div class="form-group">
+              <label>Architecture Layout</label>
+              <div class="pill-group">
+                <button type="button" class="mode-pill active" id="modeFlat" data-mode="flat">Flat (Standard / Merchant style)</button>
+                <button type="button" class="mode-pill" id="modeGrouped" data-mode="grouped">Grouped Subfolders (Auth style)</button>
+              </div>
+              <div class="hint">Flat keeps controller and service at root. Grouped organizes controllers/, services/, providers/, stores/ into subfolders.</div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="routePathInput">API Route Path</label>
+                <div class="input-prefix-wrapper">
+                  <span class="prefix">/</span>
+                  <input type="text" id="routePathInput" placeholder="order-items">
+                </div>
+              </div>
+              <div class="form-group flex-1">
+                <label for="targetPathInput">Target Directory</label>
+                <input type="text" id="targetPathInput" placeholder="src/features/order-item">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="parentModuleInput">Parent Module Registration</label>
+              <input type="text" id="parentModuleInput" placeholder="src/features/features.module.ts">
+              <div class="hint">Will register this module inside the @Module({ imports: [...] }) array.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Core Components Card (Flat Mode) -->
+        <div class="card" id="flatComponentsCard">
+          <div class="card-header">
+            <h3>Core Components <span class="badge">Flat Architecture</span></h3>
+          </div>
+          <div class="card-body">
+            <div class="file-row">
+              <span class="file-label">Service:</span>
+              <input type="text" id="serviceFileName" class="code-input" value="service.ts">
+            </div>
+            <div class="file-row">
+              <span class="file-label">Controller:</span>
+              <input type="text" id="controllerFileName" class="code-input" value="controller.ts">
+            </div>
+            <div class="file-row">
+              <span class="file-label">Module:</span>
+              <input type="text" id="moduleFileName" class="code-input" value="module.ts">
+            </div>
+          </div>
+        </div>
+
+        <!-- Grouped Components Card (Grouped Mode) -->
+        <div class="card" id="groupedComponentsCard" style="display: none;">
+          <div class="card-header">
+            <h3>Subfolder Components <span class="badge">Grouped Architecture</span></h3>
+          </div>
+          <div class="card-body">
+            <div class="file-row">
+              <span class="file-label">Module (root):</span>
+              <input type="text" id="groupedModuleFileName" class="code-input" value="module.ts">
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Controllers List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <span class="file-label" style="font-weight: 600;">controllers/ Subfolder</span>
+                <button type="button" class="btn-subtle" id="addGroupedCtrlBtn">+ Add Controller</button>
+              </div>
+              <div id="groupedCtrlContainer" class="dynamic-list"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Services List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <span class="file-label" style="font-weight: 600;">services/ Subfolder</span>
+                <button type="button" class="btn-subtle" id="addGroupedSrvBtn">+ Add Service</button>
+              </div>
+              <div id="groupedSrvContainer" class="dynamic-list"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Stores List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeStores" checked>
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">stores/ (Persistence)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addStoreBtn">+ Add Store</button>
+              </div>
+              <div id="storesContainer" class="dynamic-list"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Providers List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeProviders" checked>
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">providers/ (Handlers & Providers)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addProviderBtn">+ Add Provider</button>
+              </div>
+              <div id="providersContainer" class="dynamic-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional Architectural Components -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Optional Components</h3>
+          </div>
+          <div class="card-body">
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeRepository" checked>
+                <span class="checkmark"></span>
+                <span class="checkbox-title">Repository</span>
+              </label>
+              <input type="text" id="repositoryFileName" class="code-input flex-1" value="repository.ts">
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includePolicy">
+                <span class="checkmark"></span>
+                <span class="checkbox-title">Policy (@Policy() Authorization)</span>
+              </label>
+              <input type="text" id="policyFileName" class="code-input flex-1" value="policy.ts">
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeInterface">
+                <span class="checkmark"></span>
+                <span class="checkbox-title">Interface</span>
+              </label>
+              <input type="text" id="interfaceFileName" class="code-input flex-1" value="interface.ts">
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeSpecs">
+                <span class="checkmark"></span>
+                <span class="checkbox-title">Unit Test Specs (*.spec.ts)</span>
+              </label>
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeI18n" checked>
+                <span class="checkmark"></span>
+                <span class="checkbox-title">i18n Translation Catalog (src/i18n/{en,ar}/&lt;feature&gt;.json)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- DTOs Dynamic List -->
+        <div class="card">
+          <div class="card-header space-between">
+            <h3>Data Transfer Objects (dto/)</h3>
+            <button type="button" class="btn-subtle" id="addDtoBtn">+ Add DTO</button>
+          </div>
+          <div class="card-body" id="dtoContainer">
+            <!-- Dynamic DTO items will be appended here -->
+          </div>
+        </div>
+
+        <!-- Events, Listeners & Background Jobs Dynamic List -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Domain Events, Listeners & Background Jobs</h3>
+          </div>
+          <div class="card-body">
+            <!-- Events -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeEvents">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">events/ Folder</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addEventBtn" style="display: none;">+ Add Event</button>
+              </div>
+              <div id="eventsContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Listeners -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeListeners">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">listeners/ Folder</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addListenerBtn" style="display: none;">+ Add Listener</button>
+              </div>
+              <div id="listenersContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Processors (BullMQ) -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeProcessors">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">processors/ (BullMQ Workers)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addProcessorBtn" style="display: none;">+ Add Processor</button>
+              </div>
+              <div id="processorsContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Tasks (Cron) -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeTasks">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">tasks/ (Cron / Scheduled Jobs)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addTaskBtn" style="display: none;">+ Add Task</button>
+              </div>
+              <div id="tasksContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Plan & File Preview Tree -->
+      <aside class="preview-column">
+        <div class="card sticky-card">
+          <div class="card-header space-between">
+            <h3>Live Generation Tree</h3>
+            <span class="stats-badge" id="fileCountBadge">0 files</span>
+          </div>
+          <div class="card-body tree-body">
+            <div class="preview-tree" id="previewTree">
+              <div class="tree-empty">Enter a feature name to preview generated structure</div>
+            </div>
+
+            <div class="conflict-alert" id="conflictAlert" style="display: none;">
+              <span class="alert-icon">
+                <svg class="hi-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 9v4" />
+                  <path d="M12 17h.01" />
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                </svg>
+              </span>
+              <span class="alert-text">Some files already exist and will be overwritten on confirm.</span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+            <button type="button" class="btn-primary" id="forgeBtn" disabled>
+              <span class="btn-icon">
+                <svg class="hi-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19h16" />
+                  <path d="M8 19v-2.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5V19" />
+                  <path d="M3 10.5h18c.55 0 1 .45 1 1v1c0 1.38-1.12 2.5-2.5 2.5H6.5C4.57 15 3 13.43 3 11.5v-1z" />
+                  <path d="M14 2.5l-2.5 4h3.5L12 10" />
+                </svg>
+              </span>
+              <span id="forgeBtnText">Forge Feature</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="{{JS_URI}}"></script>
+</body>
+</html>
