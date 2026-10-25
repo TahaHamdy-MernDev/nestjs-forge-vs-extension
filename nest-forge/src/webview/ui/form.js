@@ -133,23 +133,71 @@ function toKebab(words) {
   return words.join('-');
 }
 
+function validateIdentifier(name) {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, error: 'Identifier must be a non-empty string' };
+  }
+  const trimmed = name.trim();
+  if (trimmed.length === 0) {
+    return { valid: false, error: 'Identifier cannot be empty' };
+  }
+  if (!/^[a-zA-Z]/.test(trimmed)) {
+    return {
+      valid: false,
+      error: `Invalid identifier '${name}': must start with a letter`,
+    };
+  }
+  if (!/^[a-zA-Z][a-zA-Z0-9._-]*$/.test(trimmed)) {
+    return {
+      valid: false,
+      error: `Invalid identifier '${name}': can only contain letters, digits, '.', '_', and '-'`,
+    };
+  }
+  return { valid: true };
+}
+
 function pluralize(word) {
   if (!word) return '';
   const lower = word.toLowerCase();
+
+  const uncountables = new Set([
+    'news',
+    'information',
+    'feedback',
+    'data',
+    'auth',
+  ]);
+  if (uncountables.has(lower)) {
+    return word;
+  }
+
   const irregulars = {
     person: 'people',
     child: 'children',
     man: 'men',
     woman: 'women',
     datum: 'data',
+    criterion: 'criteria',
   };
   if (irregulars[lower]) return irregulars[lower];
+
+  const irregularPlurals = new Set(Object.values(irregulars));
+  if (irregularPlurals.has(lower)) return word;
+
   if (/[bcdfghjklmnpqrstvwxyz]y$/i.test(word)) return word.slice(0, -1) + 'ies';
-  if (/(s|x|z|ch|sh)$/i.test(word)) return word + 'es';
+  if (/ies$/i.test(word)) return word;
+  if (/(sses|xes|zes|ches|shes|statuses|buses)$/i.test(word)) return word;
+  if (/(us|ss|x|z|ch|sh)$/i.test(word)) return word + 'es';
+  if (/s$/i.test(word)) return word;
+
   return word + 's';
 }
 
 function deriveNames(raw) {
+  if (!raw) return { kebab: '', pluralKebab: '' };
+  const validation = validateIdentifier(raw);
+  if (!validation.valid) return { kebab: '', pluralKebab: '' };
+
   const words = splitWords(raw);
   if (words.length === 0) return { kebab: '', pluralKebab: '' };
 
@@ -249,6 +297,17 @@ function syncCurrentDynamicInputs() {
 // Update derived form values
 function onFeatureNameChange() {
   const raw = featureNameInput.value.trim();
+  if (raw) {
+    const identCheck = validateIdentifier(raw);
+    if (!identCheck.valid) {
+      forgeBtn.disabled = true;
+      previewTree.innerHTML = `<div class="tree-empty" style="color: var(--vscode-errorForeground);">${escapeHtml(identCheck.error)}</div>`;
+      fileCountBadge.textContent = '0 files';
+      conflictAlert.style.display = 'none';
+      return;
+    }
+  }
+
   const names = deriveNames(raw);
 
   if (!names.kebab) {

@@ -35,9 +35,49 @@ export function toSnakeCase(words: string[]): string {
   return words.join('_');
 }
 
+export interface IdentifierValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+export function validateIdentifier(name: string): IdentifierValidationResult {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, error: 'Identifier must be a non-empty string' };
+  }
+  const trimmed = name.trim();
+  if (trimmed.length === 0) {
+    return { valid: false, error: 'Identifier cannot be empty' };
+  }
+  if (!/^[a-zA-Z]/.test(trimmed)) {
+    return {
+      valid: false,
+      error: `Invalid identifier '${name}': must start with a letter`,
+    };
+  }
+  if (!/^[a-zA-Z][a-zA-Z0-9._-]*$/.test(trimmed)) {
+    return {
+      valid: false,
+      error: `Invalid identifier '${name}': can only contain letters, digits, '.', '_', and '-'`,
+    };
+  }
+  return { valid: true };
+}
+
 export function pluralize(word: string): string {
   if (!word) return '';
   const lower = word.toLowerCase();
+
+  // Invariant / uncountable words
+  const uncountables = new Set([
+    'news',
+    'information',
+    'feedback',
+    'data',
+    'auth',
+  ]);
+  if (uncountables.has(lower)) {
+    return word;
+  }
 
   const irregulars: Record<string, string> = {
     person: 'people',
@@ -53,14 +93,34 @@ export function pluralize(word: string): string {
     return word.charAt(0) === word.charAt(0).toUpperCase() ? capitalize(plural) : plural;
   }
 
+  const irregularPlurals = new Set(Object.values(irregulars));
+  if (irregularPlurals.has(lower)) {
+    return word;
+  }
+
   // Words ending with consonant + y -> ies (e.g. category -> categories)
   if (/[bcdfghjklmnpqrstvwxyz]y$/i.test(word)) {
     return word.slice(0, -1) + 'ies';
   }
 
-  // Words ending in s, x, z, ch, sh -> es (e.g. status -> statuses, tax -> taxes)
-  if (/(s|x|z|ch|sh)$/i.test(word)) {
+  // Already plural ending in 'ies' (e.g. categories)
+  if (/ies$/i.test(word)) {
+    return word;
+  }
+
+  // Already plural ending in 'sses', 'xes', 'zes', 'ches', 'shes', 'statuses', 'buses'
+  if (/(sses|xes|zes|ches|shes|statuses|buses)$/i.test(word)) {
+    return word;
+  }
+
+  // Words ending in us, ss, x, z, ch, sh -> es (e.g. status -> statuses, bus -> buses, address -> addresses, box -> boxes, tax -> taxes, index -> indexes)
+  if (/(us|ss|x|z|ch|sh)$/i.test(word)) {
     return word + 'es';
+  }
+
+  // Already plural ending in 's' (e.g. users, orders, roles)
+  if (/s$/i.test(word)) {
+    return word;
   }
 
   // Default: append s
@@ -68,18 +128,24 @@ export function pluralize(word: string): string {
 }
 
 export function deriveNames(raw: string): FeatureNames {
+  const emptyNames: FeatureNames = {
+    kebab: '',
+    pascal: '',
+    camel: '',
+    snake: '',
+    pluralKebab: '',
+    pluralPascal: '',
+    pluralCamel: '',
+    pluralSnake: '',
+  };
+
+  if (!raw) return emptyNames;
+  const validation = validateIdentifier(raw);
+  if (!validation.valid) return emptyNames;
+
   const words = splitWords(raw);
   if (words.length === 0) {
-    return {
-      kebab: '',
-      pascal: '',
-      camel: '',
-      snake: '',
-      pluralKebab: '',
-      pluralPascal: '',
-      pluralCamel: '',
-      pluralSnake: '',
-    };
+    return emptyNames;
   }
 
   const kebab = toKebabCase(words);

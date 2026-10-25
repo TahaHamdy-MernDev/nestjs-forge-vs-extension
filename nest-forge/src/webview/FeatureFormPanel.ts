@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { loadProjectConventions } from '../core/config-loader.js';
 import { formatFiles } from '../core/formatter.js';
 import { registerInParentModule } from '../core/module-registrar.js';
-import { deriveNames } from '../core/naming.js';
+import { deriveNames, validateIdentifier } from '../core/naming.js';
 import { buildPlan } from '../core/planner.js';
 import { TemplateRenderer } from '../core/renderer.js';
 import { validateRoutePath, validateSafeFileName, validateWorkspacePath } from '../core/path-validator.js';
@@ -182,6 +182,13 @@ export class FeatureFormPanel {
     overwriteConflicts: boolean,
   ) {
     try {
+      const featVal = validateIdentifier(state.featureName);
+      if (!featVal.valid) {
+        vscode.window.showErrorMessage(`Nest Forge: ${featVal.error}`);
+        this._panel.webview.postMessage({ command: 'forgeCancelled' });
+        return;
+      }
+
       // 0. Path validation
       const targetVal = validateWorkspacePath(this._workspaceRoot, state.targetPath);
       if (!targetVal.valid) {

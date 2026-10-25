@@ -11,7 +11,7 @@ import { deleteFeature, renameFeature } from './core/feature-lifecycle.js';
 import { formatFiles } from './core/formatter.js';
 import { detectComponentKind, extractExportedClassInfo } from './core/module-inspector.js';
 import { unregisterFromParentModule } from './core/module-unregistrar.js';
-import { deriveNames } from './core/naming.js';
+import { deriveNames, validateIdentifier } from './core/naming.js';
 import { validateSafeFileName, validateWorkspacePath } from './core/path-validator.js';
 import { TemplateRenderer } from './core/renderer.js';
 import { clearLastScaffoldRecord, getLastScaffoldRecord, verifyFileUnchanged } from './core/scaffold-manifest.js';
@@ -355,6 +355,11 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage(`Invalid DTO name: ${nameCheck.error}`);
       return;
     }
+    const identCheck = validateIdentifier(baseName);
+    if (!identCheck.valid) {
+      vscode.window.showErrorMessage(`Invalid DTO name: ${identCheck.error}`);
+      return;
+    }
 
     const conventions = getConventions(workspaceRoot);
     const defaultTemplatesDir = path.join(context.extensionUri.fsPath, 'dist', 'templates');
@@ -487,6 +492,11 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage(`Invalid event name: ${nameCheck.error}`);
       return;
     }
+    const identCheck = validateIdentifier(baseName);
+    if (!identCheck.valid) {
+      vscode.window.showErrorMessage(`Invalid event name: ${identCheck.error}`);
+      return;
+    }
 
     const conventions = getConventions(workspaceRoot);
     const defaultTemplatesDir = path.join(context.extensionUri.fsPath, 'dist', 'templates');
@@ -549,6 +559,11 @@ export function activate(context: vscode.ExtensionContext) {
     const nameCheck = validateSafeFileName(baseName);
     if (!nameCheck.valid) {
       vscode.window.showErrorMessage(`Invalid listener name: ${nameCheck.error}`);
+      return;
+    }
+    const identCheck = validateIdentifier(baseName);
+    if (!identCheck.valid) {
+      vscode.window.showErrorMessage(`Invalid listener name: ${identCheck.error}`);
       return;
     }
 
