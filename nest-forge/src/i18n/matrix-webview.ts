@@ -1,5 +1,15 @@
+import * as crypto from 'node:crypto';
 import * as vscode from 'vscode';
 import { TranslationStore } from './store.js';
+
+export function escapeHtml(str: string): string {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 export class MatrixWebviewPanel {
   public static currentPanel: MatrixWebviewPanel | undefined;
@@ -27,6 +37,7 @@ export class MatrixWebviewPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
+        localResourceRoots: [],
       },
     );
 
@@ -177,11 +188,13 @@ export class MatrixWebviewPanel {
   }
 
   private getHtml(): string {
+    const nonce = crypto.randomBytes(16).toString('base64');
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
   <title>Nest Forge: Translation Matrix</title>
   <style>
     :root {
@@ -579,7 +592,7 @@ export class MatrixWebviewPanel {
     </div>
   </div>
 
-  <script>
+  <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
     let allEntries = [];
     let currentFilter = 'all';
@@ -598,7 +611,9 @@ export class MatrixWebviewPanel {
         updateCounts(msg.stats);
         renderTable();
       } else if (msg.command === 'cellSaved') {
-        const el = document.querySelector(\`textarea[data-key="\${msg.key}"][data-lang="\${msg.lang}"]\`);
+        const el = Array.from(document.querySelectorAll('textarea.cell-editor')).find(
+          (t) => t.getAttribute('data-key') === msg.key && t.getAttribute('data-lang') === msg.lang
+        );
         if (el) {
           el.classList.add('saved');
           setTimeout(() => el.classList.remove('saved'), 1000);
@@ -650,22 +665,25 @@ export class MatrixWebviewPanel {
           badgeHtml += '<br/><span class="status-badge badge-typo">AR Typo</span>';
         }
 
+        const safeKey = escapeHtml(entry.key);
+        const safeNamespace = escapeHtml(entry.namespace);
+
         return \`
-          <tr data-key="\${entry.key}">
+          <tr data-key="\${safeKey}">
             <td class="key-cell">
-              <span class="ns-tag">\${entry.namespace}</span><br/>
-              <span class="key-text">\${entry.key}</span>
+              <span class="ns-tag">\${safeNamespace}</span><br/>
+              <span class="key-text">\${safeKey}</span>
             </td>
             <td class="text-cell">
-              <textarea class="cell-editor" data-key="\${entry.key}" data-lang="en">\${escapeHtml(entry.en)}</textarea>
+              <textarea class="cell-editor" data-key="\${safeKey}" data-lang="en">\${escapeHtml(entry.en)}</textarea>
             </td>
             <td class="text-cell">
-              <textarea class="cell-editor rtl" data-key="\${entry.key}" data-lang="ar">\${escapeHtml(entry.ar)}</textarea>
+              <textarea class="cell-editor rtl" data-key="\${safeKey}" data-lang="ar">\${escapeHtml(entry.ar)}</textarea>
             </td>
             <td>\${badgeHtml}</td>
             <td class="actions-cell">
-              <button class="icon-btn" title="Jump to File" onclick="jumpTo('\${entry.key}')">📂</button>
-              <button class="icon-btn" title="Delete Key" onclick="deleteKey('\${entry.key}')">🗑</button>
+              <button class="icon-btn" title="Jump to File" data-action="jump" data-key="\${safeKey}">📂</button>
+              <button class="icon-btn" title="Delete Key" data-action="delete" data-key="\${safeKey}">🗑</button>
             </td>
           </tr>
         \`;
@@ -687,16 +705,22 @@ export class MatrixWebviewPanel {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
-    window.jumpTo = (key) => {
-      vscode.postMessage({ command: 'jumpToKey', key, lang: 'en' });
-    };
-
-    window.deleteKey = (key) => {
-      vscode.postMessage({ command: 'deleteKey', key });
-    };
+    tableBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.getAttribute('data-action');
+      const key = btn.getAttribute('data-key');
+      if (!key) return;
+      if (action === 'jump') {
+        vscode.postMessage({ command: 'jumpToKey', key, lang: 'en' });
+      } else if (action === 'delete') {
+        vscode.postMessage({ command: 'deleteKey', key });
+      }
+    });
 
     // Filter Chips
     document.querySelectorAll('.chip').forEach((chip) => {
