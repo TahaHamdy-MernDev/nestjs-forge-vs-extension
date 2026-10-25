@@ -11,3 +11,6 @@ pnpm-workspace.yaml
 .git/**
 *.vsix
 dist/meta.json
+dist/resources/**
+AGENTS.md
+GEMINI.md

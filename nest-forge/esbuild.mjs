@@ -22,8 +22,7 @@ function copyDirRecursive(src, dest) {
 function copyAssets() {
   copyDirRecursive('src/templates', 'dist/templates');
   copyDirRecursive('src/webview/ui', 'dist/webview/ui');
-  copyDirRecursive('resources', 'dist/resources');
-  console.log('Copied templates, webview UI, and icon assets to dist/');
+  console.log('Copied templates and webview UI assets to dist/');
 }
 
 const copyAssetsPlugin = {
