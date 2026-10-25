@@ -558,6 +558,12 @@ window.addEventListener('message', (event) => {
       renderPreviewTree(message.plans);
       break;
     }
+
+    case 'forgeCancelled': {
+      forgeBtn.disabled = false;
+      document.getElementById('forgeBtnText').textContent = 'Forge Feature';
+      break;
+    }
   }
 });
 
@@ -972,7 +978,7 @@ forgeBtn.addEventListener('click', () => {
   vscode.postMessage({
     command: 'forgeFeature',
     state,
-    overwriteConflicts: true,
+    overwriteConflicts: false,
   });
 });
 

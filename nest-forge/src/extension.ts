@@ -372,6 +372,17 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    if (fs.existsSync(targetFile)) {
+      const confirm = await vscode.window.showWarningMessage(
+        `DTO already exists at ${path.relative(workspaceRoot, targetFile)}. Overwrite it?`,
+        { modal: true },
+        'Overwrite',
+      );
+      if (confirm !== 'Overwrite') {
+        return;
+      }
+    }
+
     fs.mkdirSync(dtoDir, { recursive: true });
     const content = renderer.render('dto', {
       names: featureNames,
@@ -493,6 +504,17 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    if (fs.existsSync(targetFile)) {
+      const confirm = await vscode.window.showWarningMessage(
+        `Event already exists at ${path.relative(workspaceRoot, targetFile)}. Overwrite it?`,
+        { modal: true },
+        'Overwrite',
+      );
+      if (confirm !== 'Overwrite') {
+        return;
+      }
+    }
+
     fs.mkdirSync(eventDir, { recursive: true });
     const content = renderer.render('event', {
       names: featureNames,
@@ -544,6 +566,17 @@ export function activate(context: vscode.ExtensionContext) {
     if (!pathCheck.valid) {
       vscode.window.showErrorMessage(`Invalid file path: ${pathCheck.error}`);
       return;
+    }
+
+    if (fs.existsSync(targetFile)) {
+      const confirm = await vscode.window.showWarningMessage(
+        `Listener already exists at ${path.relative(workspaceRoot, targetFile)}. Overwrite it?`,
+        { modal: true },
+        'Overwrite',
+      );
+      if (confirm !== 'Overwrite') {
+        return;
+      }
     }
 
     fs.mkdirSync(listenerDir, { recursive: true });

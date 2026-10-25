@@ -1,3 +1,5 @@
+import * as path from 'node:path';
+
 export class Range {
   constructor(
     public startLine: number,
@@ -14,28 +16,55 @@ export class Position {
   ) {}
 }
 
-export const Uri = {
-  file(fsPath: string) {
-    return { fsPath, path: fsPath, scheme: 'file' };
-  },
-  parse(str: string) {
-    return { fsPath: str, path: str, scheme: 'file' };
-  },
-};
+export class Uri {
+  public fsPath: string;
+  public path: string;
+  public scheme: string;
+
+  constructor(fsPath: string, scheme = 'file') {
+    this.fsPath = fsPath;
+    this.path = fsPath;
+    this.scheme = scheme;
+  }
+
+  static file(fsPath: string): Uri {
+    return new Uri(fsPath, 'file');
+  }
+
+  static parse(str: string): Uri {
+    return new Uri(str, 'file');
+  }
+
+  static joinPath(base: Uri, ...pathSegments: string[]): Uri {
+    return new Uri(path.join(base.fsPath, ...pathSegments), base.scheme);
+  }
+
+  toString(): string {
+    return `${this.scheme}://${this.fsPath}`;
+  }
+}
 
 export class EventEmitter<T = any> {
   private listeners: ((e: T) => void)[] = [];
   event = (listener: (e: T) => void) => {
     this.listeners.push(listener);
-    return { dispose: () => {} };
+    return {
+      dispose: () => {
+        const idx = this.listeners.indexOf(listener);
+        if (idx !== -1) this.listeners.splice(idx, 1);
+      },
+    };
   };
   fire(data: T): void {
-    for (const l of this.listeners) {
+    for (const l of [...this.listeners]) {
       l(data);
     }
   }
   dispose(): void {
     this.listeners = [];
+  }
+  listenerCount(): number {
+    return this.listeners.length;
   }
 }
 
@@ -46,10 +75,30 @@ export class RelativePattern {
   ) {}
 }
 
+export const ViewColumn = {
+  One: 1,
+  Two: 2,
+  Three: 3,
+};
+
+export const CodeActionKind = {
+  QuickFix: 'quickfix',
+  RefactorExtract: 'refactor.extract',
+};
+
+export const StatusBarAlignment = {
+  Left: 1,
+  Right: 2,
+};
+
 export const workspace = {
+  isTrusted: true,
+  workspaceFolders: [] as any[],
+  textDocuments: [] as any[],
+  getWorkspaceFolder: (_uri: any): any => workspace.workspaceFolders[0],
   findFiles: async () => [],
   getConfiguration: () => ({
-    get: (key: string, defaultValue?: any) => defaultValue,
+    get: (_key: string, defaultValue?: any) => defaultValue,
   }),
   createFileSystemWatcher: () => ({
     onDidChange: () => ({ dispose: () => {} }),
@@ -57,15 +106,21 @@ export const workspace = {
     onDidDelete: () => ({ dispose: () => {} }),
     dispose: () => {},
   }),
+  onDidOpenTextDocument: () => ({ dispose: () => {} }),
+  onDidChangeTextDocument: () => ({ dispose: () => {} }),
+  onDidCloseTextDocument: () => ({ dispose: () => {} }),
   openTextDocument: async () => ({}),
 };
 
 export const window = {
-  showInformationMessage: async () => undefined,
-  showErrorMessage: async () => undefined,
-  showWarningMessage: async () => undefined,
-  showQuickPick: async () => undefined,
-  showInputBox: async () => undefined,
+  showInformationMessage: async (..._args: any[]): Promise<any> => undefined,
+  showErrorMessage: async (..._args: any[]): Promise<any> => undefined,
+  showWarningMessage: async (..._args: any[]): Promise<any> => undefined,
+  showQuickPick: async (..._args: any[]): Promise<any> => undefined,
+  showInputBox: async (..._args: any[]): Promise<any> => undefined,
+  showTextDocument: async (..._args: any[]): Promise<any> => ({}),
+  registerTreeDataProvider: () => ({ dispose: () => {} }),
+  createWebviewPanel: (..._args: any[]): any => ({}),
   createOutputChannel: () => ({
     appendLine: () => {},
     show: () => {},
@@ -78,12 +133,12 @@ export const window = {
     text: '',
     tooltip: '',
   }),
-  activeTextEditor: undefined,
+  activeTextEditor: undefined as any,
 };
 
 export const commands = {
-  registerCommand: () => ({ dispose: () => {} }),
-  executeCommand: async () => undefined,
+  registerCommand: (_command: string, _callback: (...args: any[]) => any) => ({ dispose: () => {} }),
+  executeCommand: async (..._args: any[]): Promise<any> => undefined,
 };
 
 export enum DiagnosticSeverity {
@@ -128,4 +183,8 @@ export const languages = {
     dispose: () => {},
   }),
   registerCodeActionsProvider: () => ({ dispose: () => {} }),
+  registerHoverProvider: () => ({ dispose: () => {} }),
+  registerCompletionItemProvider: () => ({ dispose: () => {} }),
+  registerDefinitionProvider: () => ({ dispose: () => {} }),
 };
+

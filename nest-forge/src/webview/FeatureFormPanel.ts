@@ -182,6 +182,7 @@ export class FeatureFormPanel {
       const targetVal = validateWorkspacePath(this._workspaceRoot, state.targetPath);
       if (!targetVal.valid) {
         vscode.window.showErrorMessage(`Nest Forge: ${targetVal.error}`);
+        this._panel.webview.postMessage({ command: 'forgeCancelled' });
         return;
       }
 
@@ -189,6 +190,7 @@ export class FeatureFormPanel {
         const parentVal = validateWorkspacePath(this._workspaceRoot, state.parentModulePath);
         if (!parentVal.valid) {
           vscode.window.showErrorMessage(`Nest Forge: ${parentVal.error}`);
+          this._panel.webview.postMessage({ command: 'forgeCancelled' });
           return;
         }
       }
@@ -213,6 +215,7 @@ export class FeatureFormPanel {
         const fnVal = validateSafeFileName(fn);
         if (!fnVal.valid) {
           vscode.window.showErrorMessage(`Nest Forge: ${fnVal.error}`);
+          this._panel.webview.postMessage({ command: 'forgeCancelled' });
           return;
         }
       }
@@ -220,6 +223,7 @@ export class FeatureFormPanel {
       const plans = buildPlan(state, this._conventions, this._workspaceRoot);
       if (plans.length === 0) {
         vscode.window.showErrorMessage('Nest Forge: No files to generate. Please specify a feature name.');
+        this._panel.webview.postMessage({ command: 'forgeCancelled' });
         return;
       }
 
@@ -232,6 +236,7 @@ export class FeatureFormPanel {
           'Cancel',
         );
         if (choice !== 'Overwrite All') {
+          this._panel.webview.postMessage({ command: 'forgeCancelled' });
           return;
         }
       }
