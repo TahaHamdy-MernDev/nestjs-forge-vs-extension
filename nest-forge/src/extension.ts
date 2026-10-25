@@ -83,8 +83,6 @@ function getConventions(root: string) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Nest Forge extension activated.');
-
   // Initialize unified @nestjs/i18n suite
   const workspaceFolders = vscode.workspace.workspaceFolders;
   const initialRoot = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.fsPath : process.cwd();
