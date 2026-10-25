@@ -6,6 +6,41 @@ export interface PathValidationResult {
   resolvedPath?: string;
 }
 
+export interface RoutePathValidationResult {
+  valid: boolean;
+  error?: string;
+  sanitized?: string;
+}
+
+export function validateRoutePath(routePath?: string): RoutePathValidationResult {
+  if (routePath === undefined || routePath === null) {
+    return { valid: true, sanitized: '' };
+  }
+
+  const trimmed = routePath.trim();
+  if (trimmed.length === 0) {
+    return { valid: true, sanitized: '' };
+  }
+
+  if (trimmed.includes("'") || trimmed.includes('"') || trimmed.includes('`') || trimmed.includes('${')) {
+    return { valid: false, error: 'Route path cannot contain quotes, backticks, or template literals' };
+  }
+
+  const stripped = trimmed.replace(/^\/+|\/+$/g, '');
+  if (stripped.length === 0) {
+    return { valid: true, sanitized: '' };
+  }
+
+  if (!/^[a-zA-Z0-9_\-\/:]+$/.test(stripped)) {
+    return {
+      valid: false,
+      error: `Invalid route path '${routePath}': allowed characters are letters, digits, '-', '_', '/', and ':'`,
+    };
+  }
+
+  return { valid: true, sanitized: stripped };
+}
+
 export function validateSafeFileName(fileName: string): PathValidationResult {
   if (!fileName || typeof fileName !== 'string') {
     return { valid: false, error: 'File name must be a non-empty string' };

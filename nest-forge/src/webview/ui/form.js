@@ -497,6 +497,7 @@ function getFormState() {
 
   return {
     featureName,
+    routePath: routePathInput ? routePathInput.value.trim() : '',
     structureMode,
     targetPath: targetPathInput.value.trim(),
     parentModulePath: parentModuleInput.value.trim(),

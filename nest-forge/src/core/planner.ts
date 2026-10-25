@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { deriveNames } from './naming.js';
+import { validateRoutePath } from './path-validator.js';
 import type { FeatureFormState, FilePlan, ProjectConventions } from './types.js';
 
 export interface ModuleComponentEntry {
@@ -23,6 +24,15 @@ export function buildPlan(
 ): FilePlan[] {
   const names = deriveNames(state.featureName);
   if (!names.kebab) return [];
+
+  let customRoutePath: string | undefined;
+  if (state.routePath !== undefined && state.routePath !== null && state.routePath.trim() !== '') {
+    const val = validateRoutePath(state.routePath);
+    if (!val.valid) {
+      throw new Error(`Invalid route path: ${val.error}`);
+    }
+    customRoutePath = val.sanitized;
+  }
 
   const isGrouped = state.structureMode === 'grouped';
   const targetDirAbs = path.isAbsolute(state.targetPath)
@@ -92,7 +102,7 @@ export function buildPlan(
 
       addPlan(controllersDirAbs, ctrlFileName, 'controller', {
         controllerClassName: ctrlClassName,
-        routePath: ctrlNames.pluralKebab,
+        routePath: customRoutePath || ctrlNames.pluralKebab,
         serviceClassName: primaryServiceName,
         serviceImportPath,
         serviceParamName: conventions.paramStyle === 'snake_case' ? `${names.snake}_service` : `${names.camel}Service`,
@@ -356,7 +366,7 @@ export function buildPlan(
 
     addPlan(targetDirAbs, ctrlFile, 'controller', {
       controllerClassName: ctrlClassName,
-      routePath: names.pluralKebab,
+      routePath: customRoutePath || names.pluralKebab,
       serviceClassName: srvClassName,
       serviceImportPath: `./${names.kebab}.service${conventions.importExtension}`,
       serviceParamName: conventions.paramStyle === 'snake_case' ? `${names.snake}_service` : `${names.camel}Service`,

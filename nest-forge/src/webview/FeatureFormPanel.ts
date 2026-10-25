@@ -7,7 +7,7 @@ import { registerInParentModule } from '../core/module-registrar.js';
 import { deriveNames } from '../core/naming.js';
 import { buildPlan } from '../core/planner.js';
 import { TemplateRenderer } from '../core/renderer.js';
-import { validateSafeFileName, validateWorkspacePath } from '../core/path-validator.js';
+import { validateRoutePath, validateSafeFileName, validateWorkspacePath } from '../core/path-validator.js';
 import { createFileHashes, saveLastScaffoldRecord } from '../core/scaffold-manifest.js';
 import type { FeatureFormState, ProjectConventions } from '../core/types.js';
 import { writeFeatureFiles } from '../core/writer.js';
@@ -148,12 +148,16 @@ export class FeatureFormPanel {
           }
 
           case 'updatePreview': {
-            const state: FeatureFormState = message.state;
-            const plans = buildPlan(state, this._conventions, this._workspaceRoot);
-            this._panel.webview.postMessage({
-              command: 'previewUpdated',
-              plans,
-            });
+            try {
+              const state: FeatureFormState = message.state;
+              const plans = buildPlan(state, this._conventions, this._workspaceRoot);
+              this._panel.webview.postMessage({
+                command: 'previewUpdated',
+                plans,
+              });
+            } catch {
+              // Ignore invalid input while user is typing in form
+            }
             break;
           }
 
@@ -190,6 +194,15 @@ export class FeatureFormPanel {
         const parentVal = validateWorkspacePath(this._workspaceRoot, state.parentModulePath);
         if (!parentVal.valid) {
           vscode.window.showErrorMessage(`Nest Forge: ${parentVal.error}`);
+          this._panel.webview.postMessage({ command: 'forgeCancelled' });
+          return;
+        }
+      }
+
+      if (state.routePath) {
+        const routeVal = validateRoutePath(state.routePath);
+        if (!routeVal.valid) {
+          vscode.window.showErrorMessage(`Nest Forge: ${routeVal.error}`);
           this._panel.webview.postMessage({ command: 'forgeCancelled' });
           return;
         }

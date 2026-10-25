@@ -15,6 +15,7 @@ export interface SubFileEntry {
 
 export interface FeatureFormState {
   featureName: string;
+  routePath?: string;
   targetPath: string;
   parentModulePath: string;
   structureMode?: 'flat' | 'grouped';
