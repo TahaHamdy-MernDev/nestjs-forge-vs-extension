@@ -2,6 +2,11 @@
 
 All notable changes to the "Nest Forge" extension will be documented in this file.
 
+## [0.4.3] - 2026-10-26
+
+### CI & Tooling
+- Fix pnpm v9 CI dependency installation by adding the required `packages` field in `pnpm-workspace.yaml` and defining root workspace mapping.
+
 ## [0.4.2] - 2026-10-26
 
 ### Repository
