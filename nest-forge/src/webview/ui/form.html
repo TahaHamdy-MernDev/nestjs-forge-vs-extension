@@ -100,280 +100,415 @@
           </div>
         </div>
 
-        <!-- Architecture Layout Switcher Card -->
-        <div class="card">
+        <!-- Architecture Layout Segmented Control -->
+        <div class="card layout-card-section">
           <div class="card-header">
             <h3>Architecture Layout</h3>
           </div>
           <div class="card-body">
-            <div class="layout-selector-grid">
-              <!-- Flat Option -->
-              <div class="layout-card active" id="modeFlatCard" data-mode="flat">
-                <div class="layout-card-header">
-                  <div class="radio-indicator"></div>
-                  <div>
-                    <strong>Flat Architecture</strong>
-                    <span class="tag tag-preset">Standard NestJS</span>
-                  </div>
-                </div>
-                <p class="layout-card-desc">Keeps controller, service, and module at feature root. Clean and direct for standard domain modules.</p>
-                <div class="layout-mini-tree">
-                  <span class="mini-node">📁 src/features/&lt;name&gt;/</span>
-                  <span class="mini-leaf">📄 controller.ts</span>
-                  <span class="mini-leaf">📄 service.ts</span>
-                  <span class="mini-leaf">📄 module.ts</span>
-                </div>
-              </div>
-
-              <!-- Grouped Option -->
-              <div class="layout-card" id="modeGroupedCard" data-mode="grouped">
-                <div class="layout-card-header">
-                  <div class="radio-indicator"></div>
-                  <div>
-                    <strong>Grouped Subfolders</strong>
-                    <span class="tag tag-preset">Enterprise Auth Style</span>
-                  </div>
-                </div>
-                <p class="layout-card-desc">Isolates multiple controllers, services, stores, and custom providers into structured subfolders.</p>
-                <div class="layout-mini-tree">
-                  <span class="mini-node">📁 src/features/&lt;name&gt;/</span>
-                  <span class="mini-leaf">📁 controllers/</span>
-                  <span class="mini-leaf">📁 services/</span>
-                  <span class="mini-leaf">📁 stores/ &amp; providers/</span>
-                </div>
-              </div>
+            <div class="segmented-control" role="radiogroup" aria-label="Architecture Layout">
+              <button type="button" class="segment-btn active" id="segFlat" role="radio" aria-checked="true" data-mode="flat" tabindex="0">
+                <span class="segment-title">Flat Architecture</span>
+                <span class="segment-caption">Core files at feature root; clean &amp; direct for standard domains</span>
+              </button>
+              <button type="button" class="segment-btn" id="segGrouped" role="radio" aria-checked="false" data-mode="grouped" tabindex="-1">
+                <span class="segment-title">Grouped Subfolders</span>
+                <span class="segment-caption">Subfolders for controllers/, services/, stores/, and providers/</span>
+              </button>
             </div>
-
-            <!-- Hidden native mode pills for backward compatibility with existing tests -->
-            <div style="display: none;">
+            <!-- Backwards-compatibility aliases for existing tests/scripts -->
+            <div style="display: none;" aria-hidden="true">
               <button type="button" id="modeFlat" data-mode="flat">Flat</button>
               <button type="button" id="modeGrouped" data-mode="grouped">Grouped</button>
+              <div id="modeFlatCard" data-mode="flat"></div>
+              <div id="modeGroupedCard" data-mode="grouped"></div>
             </div>
           </div>
         </div>
 
-        <!-- Flat Mode Components -->
-        <div class="card" id="flatComponentsCard">
-          <div class="card-header">
-            <h3>Core Components <span class="badge">Flat Architecture</span></h3>
-          </div>
-          <div class="card-body">
-            <div class="file-row">
-              <span class="file-label">Service:</span>
-              <input type="text" id="serviceFileName" class="code-input" value="service.ts">
-            </div>
-            <div class="file-row">
-              <span class="file-label">Controller:</span>
-              <input type="text" id="controllerFileName" class="code-input" value="controller.ts">
-            </div>
-            <div class="file-row">
-              <span class="file-label">Module:</span>
-              <input type="text" id="moduleFileName" class="code-input" value="module.ts">
-            </div>
-          </div>
-        </div>
-
-        <!-- Grouped Mode Components -->
-        <div class="card" id="groupedComponentsCard" style="display: none;">
-          <div class="card-header">
-            <h3>Subfolder Components <span class="badge">Grouped Architecture</span></h3>
-          </div>
-          <div class="card-body">
-            <div class="file-row">
-              <span class="file-label">Module (root):</span>
-              <input type="text" id="groupedModuleFileName" class="code-input" value="module.ts">
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Controllers List -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <span class="file-label" style="font-weight: 600;">controllers/ Subfolder</span>
-                <button type="button" class="btn-subtle" id="addGroupedCtrlBtn">+ Add Controller</button>
-              </div>
-              <div id="groupedCtrlContainer" class="dynamic-list"></div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Services List -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <span class="file-label" style="font-weight: 600;">services/ Subfolder</span>
-                <button type="button" class="btn-subtle" id="addGroupedSrvBtn">+ Add Service</button>
-              </div>
-              <div id="groupedSrvContainer" class="dynamic-list"></div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Stores List -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeStores" checked>
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">stores/ (Persistence & Repository)</span>
-                </label>
-                <button type="button" class="btn-subtle" id="addStoreBtn">+ Add Store</button>
-              </div>
-              <div id="storesContainer" class="dynamic-list"></div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Providers List -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeProviders" checked>
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">providers/ (Handlers & Custom Providers)</span>
-                </label>
-                <button type="button" class="btn-subtle" id="addProviderBtn">+ Add Provider</button>
-              </div>
-              <div id="providersContainer" class="dynamic-list"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Persistence & Domain Guards -->
-        <div class="card">
-          <div class="card-header">
-            <h3>Persistence & Domain Guards</h3>
-          </div>
-          <div class="card-body">
-            <div class="checkbox-row">
-              <label class="custom-checkbox">
-                <input type="checkbox" id="includeRepository" checked>
-                <span class="checkmark"></span>
-                <span class="checkbox-title">Repository</span>
-              </label>
-              <input type="text" id="repositoryFileName" class="code-input flex-1" value="repository.ts">
-            </div>
-
-            <div class="checkbox-row">
-              <label class="custom-checkbox">
-                <input type="checkbox" id="includePolicy">
-                <span class="checkmark"></span>
-                <span class="checkbox-title">Policy (@Policy() Guard)</span>
-              </label>
-              <input type="text" id="policyFileName" class="code-input flex-1" value="policy.ts">
-            </div>
-
-            <div class="checkbox-row">
-              <label class="custom-checkbox">
-                <input type="checkbox" id="includeInterface">
-                <span class="checkmark"></span>
-                <span class="checkbox-title">TypeScript Interface</span>
-              </label>
-              <input type="text" id="interfaceFileName" class="code-input flex-1" value="interface.ts">
-            </div>
-          </div>
-        </div>
-
-        <!-- DTOs Dynamic List -->
-        <div class="card">
+        <!-- Components Section with Presets & 13 Toggle Cards -->
+        <div class="card components-card">
           <div class="card-header space-between">
-            <div>
-              <h3>Data Transfer Objects (dto/)</h3>
+            <div class="header-title-group">
+              <h3>Domain Components</h3>
+              <p class="section-subtitle">Toggle architecture elements and configure file counts (1..5)</p>
             </div>
-            <button type="button" class="btn-subtle" id="addDtoBtn">+ Add DTO</button>
+            <!-- Presets Row -->
+            <div class="presets-bar" role="toolbar" aria-label="Feature Presets">
+              <span class="presets-label">Presets:</span>
+              <div class="presets-buttons" role="group" aria-label="Quick Presets">
+                <button type="button" class="preset-btn active" id="presetCrud" data-preset="crud" title="Controller, service, repository, and DTOs">Standard CRUD</button>
+                <button type="button" class="preset-btn" id="presetDomain" data-preset="domain" title="Adds store, provider, events, listeners, processor, task">Full domain</button>
+                <button type="button" class="preset-btn" id="presetMinimal" data-preset="minimal" title="Module, service, controller only">Minimal</button>
+              </div>
+            </div>
           </div>
-          <div class="card-body" id="dtoContainer">
-            <!-- Dynamic DTO items will be appended here -->
+
+          <div class="card-body">
+            <!-- Grid of 13 Component Toggle Cards -->
+            <div class="component-grid" id="componentGrid" role="group" aria-label="Component Cards">
+
+              <!-- 1. Controller -->
+              <div class="component-card active" id="card-controller" data-component="controller" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M20 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M6 17h6a5 5 0 0 0 5-5V7"/></svg>
+                    </span>
+                    <strong class="component-name">Controller</strong>
+                  </div>
+                  <button type="button" class="toggle-btn active" id="toggle-controller" role="switch" aria-checked="true" aria-pressed="true" aria-label="Toggle Controller" data-toggle="controller">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-controller" aria-label="Controller count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-controller" data-stepper-for="controller" data-dir="-1" aria-label="Decrease Controller count" disabled>-</button>
+                    <span class="stepper-count" id="count-controller">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-controller" data-stepper-for="controller" data-dir="1" aria-label="Increase Controller count">+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-controller">Root</span>
+                </div>
+              </div>
+
+              <!-- 2. Service -->
+              <div class="component-card active" id="card-service" data-component="service" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V16.5L12 21.5L3 16.5V7.5L12 2.5L21 7.5Z"/><path d="M12 12V21.5"/><path d="M12 12L21 7.5"/><path d="M12 12L3 7.5"/></svg>
+                    </span>
+                    <strong class="component-name">Service</strong>
+                  </div>
+                  <button type="button" class="toggle-btn active" id="toggle-service" role="switch" aria-checked="true" aria-pressed="true" aria-label="Toggle Service" data-toggle="service">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-service" aria-label="Service count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-service" data-stepper-for="service" data-dir="-1" aria-label="Decrease Service count" disabled>-</button>
+                    <span class="stepper-count" id="count-service">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-service" data-stepper-for="service" data-dir="1" aria-label="Increase Service count">+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-service">Root</span>
+                </div>
+              </div>
+
+              <!-- 3. Repository -->
+              <div class="component-card active" id="card-repository" data-component="repository" data-multi="false">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8.5" ry="3"/><path d="M3.5 5v7c0 1.66 3.8 3 8.5 3s8.5-1.34 8.5-3V5"/><path d="M3.5 12v7c0 1.66 3.8 3 8.5 3s8.5-1.34 8.5-3v-7"/></svg>
+                    </span>
+                    <strong class="component-name">Repository</strong>
+                  </div>
+                  <button type="button" class="toggle-btn active" id="toggle-repository" role="switch" aria-checked="true" aria-pressed="true" aria-label="Toggle Repository" data-toggle="repository">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <span class="card-type-desc">Data Persistence</span>
+                </div>
+              </div>
+
+              <!-- 4. Store -->
+              <div class="component-card card-grouped-only card-disabled" id="card-store" data-component="store" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 14h18"/><circle cx="7" cy="17" r="1" fill="currentColor"/><path d="M7 8h10"/></svg>
+                    </span>
+                    <strong class="component-name">Store</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-store" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Store" data-toggle="store" disabled>
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-store" aria-label="Store count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-store" data-stepper-for="store" data-dir="-1" aria-label="Decrease Store count" disabled>-</button>
+                    <span class="stepper-count" id="count-store">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-store" data-stepper-for="store" data-dir="1" aria-label="Increase Store count" disabled>+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-store">Grouped only</span>
+                </div>
+              </div>
+
+              <!-- 5. Provider -->
+              <div class="component-card card-grouped-only card-disabled" id="card-provider" data-component="provider" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="14" rx="3"/><path d="M9 3v4"/><path d="M15 3v4"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
+                    </span>
+                    <strong class="component-name">Provider</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-provider" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Provider" data-toggle="provider" disabled>
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-provider" aria-label="Provider count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-provider" data-stepper-for="provider" data-dir="-1" aria-label="Decrease Provider count" disabled>-</button>
+                    <span class="stepper-count" id="count-provider">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-provider" data-stepper-for="provider" data-dir="1" aria-label="Increase Provider count" disabled>+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-provider">Grouped only</span>
+                </div>
+              </div>
+
+              <!-- 6. Policy -->
+              <div class="component-card" id="card-policy" data-component="policy" data-multi="false">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5s8 2.5 8 8c0 6.5-5 10.5-8 11.5-3-1-8-5-8-11.5 0-5.5 8-8 8-8Z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </span>
+                    <strong class="component-name">Policy</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-policy" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Policy" data-toggle="policy">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <span class="card-type-desc">@Policy() Guard</span>
+                </div>
+              </div>
+
+              <!-- 7. Interface -->
+              <div class="component-card" id="card-interface" data-component="interface" data-multi="false">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M9 12h6"/></svg>
+                    </span>
+                    <strong class="component-name">Interface</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-interface" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Interface" data-toggle="interface">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <span class="card-type-desc">Domain Contract</span>
+                </div>
+              </div>
+
+              <!-- 8. DTO -->
+              <div class="component-card active" id="card-dto" data-component="dto" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z"/><path d="M14 2v6h6"/><path d="m10 13-2 2 2 2"/><path d="m14 13 2 2-2 2"/></svg>
+                    </span>
+                    <strong class="component-name">DTO</strong>
+                  </div>
+                  <button type="button" class="toggle-btn active" id="toggle-dto" role="switch" aria-checked="true" aria-pressed="true" aria-label="Toggle DTO" data-toggle="dto">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-dto" aria-label="DTO count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-dto" data-stepper-for="dto" data-dir="-1" aria-label="Decrease DTO count">-</button>
+                    <span class="stepper-count" id="count-dto">2</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-dto" data-stepper-for="dto" data-dir="1" aria-label="Increase DTO count">+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-dto">dto/</span>
+                </div>
+              </div>
+
+              <!-- 9. Event -->
+              <div class="component-card" id="card-event" data-component="event" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 13h7l-1 9 9-11h-7l1-9Z"/></svg>
+                    </span>
+                    <strong class="component-name">Event</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-event" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Event" data-toggle="event">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-event" aria-label="Event count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-event" data-stepper-for="event" data-dir="-1" aria-label="Decrease Event count" disabled>-</button>
+                    <span class="stepper-count" id="count-event">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-event" data-stepper-for="event" data-dir="1" aria-label="Increase Event count" disabled>+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-event">events/</span>
+                </div>
+              </div>
+
+              <!-- 10. Listener -->
+              <div class="component-card" id="card-listener" data-component="listener" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0-6 6v3.586l-1.707 1.707A1 1 0 0 0 5 16h14a1 1 0 0 0 .707-1.707L18 12.586V9a6 6 0 0 0-6-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+                    </span>
+                    <strong class="component-name">Listener</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-listener" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Listener" data-toggle="listener">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-listener" aria-label="Listener count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-listener" data-stepper-for="listener" data-dir="-1" aria-label="Decrease Listener count" disabled>-</button>
+                    <span class="stepper-count" id="count-listener">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-listener" data-stepper-for="listener" data-dir="1" aria-label="Increase Listener count" disabled>+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-listener">listeners/</span>
+                </div>
+              </div>
+
+              <!-- 11. Processor -->
+              <div class="component-card" id="card-processor" data-component="processor" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+                    </span>
+                    <strong class="component-name">Processor</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-processor" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Processor" data-toggle="processor">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-processor" aria-label="Processor count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-processor" data-stepper-for="processor" data-dir="-1" aria-label="Decrease Processor count" disabled>-</button>
+                    <span class="stepper-count" id="count-processor">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-processor" data-stepper-for="processor" data-dir="1" aria-label="Increase Processor count" disabled>+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-processor">BullMQ</span>
+                </div>
+              </div>
+
+              <!-- 12. Task -->
+              <div class="component-card" id="card-task" data-component="task" data-multi="true">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                    </span>
+                    <strong class="component-name">Task</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-task" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Task" data-toggle="task">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <div class="stepper" id="stepper-task" aria-label="Task count">
+                    <button type="button" class="stepper-btn btn-minus" id="stepper-minus-task" data-stepper-for="task" data-dir="-1" aria-label="Decrease Task count" disabled>-</button>
+                    <span class="stepper-count" id="count-task">1</span>
+                    <button type="button" class="stepper-btn btn-plus" id="stepper-plus-task" data-stepper-for="task" data-dir="1" aria-label="Increase Task count" disabled>+</button>
+                  </div>
+                  <span class="card-mode-badge" id="badge-task">Cron</span>
+                </div>
+              </div>
+
+              <!-- 13. Spec -->
+              <div class="component-card" id="card-spec" data-component="spec" data-multi="false">
+                <div class="card-top-row">
+                  <div class="card-info">
+                    <span class="component-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v12.5a3.5 3.5 0 0 0 7 0V3"/><path d="M10 10h6"/></svg>
+                    </span>
+                    <strong class="component-name">Spec</strong>
+                  </div>
+                  <button type="button" class="toggle-btn" id="toggle-spec" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle Spec" data-toggle="spec">
+                    <span class="toggle-dot"></span>
+                  </button>
+                </div>
+                <div class="card-bottom-row">
+                  <span class="card-type-desc">*.spec.ts Tests</span>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 
-        <!-- Events, Listeners & Background Jobs Dynamic List -->
-        <div class="card">
+        <!-- Testing & Localization Panel -->
+        <div class="card options-card">
           <div class="card-header">
-            <h3>Domain Events, Listeners & Background Jobs</h3>
+            <h3>Testing &amp; Localization</h3>
           </div>
           <div class="card-body">
-            <!-- Events -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeEvents">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">events/ Folder</span>
-                </label>
-                <button type="button" class="btn-subtle" id="addEventBtn" style="display: none;">+ Add Event</button>
+            <div class="option-row">
+              <div class="option-info">
+                <span class="option-label">i18n Translation Catalog</span>
+                <span class="option-sub">Generates dictionaries in <code>src/i18n/{locale}/</code> and updates <code>translations.ts</code></span>
               </div>
-              <div id="eventsContainer" class="dynamic-list" style="display: none;"></div>
+              <div class="option-controls">
+                <div class="locale-chips" aria-label="Fixed locales">
+                  <span class="locale-chip active" title="English locale (fixed)">en</span>
+                  <span class="locale-chip active" title="Arabic locale (fixed)">ar</span>
+                </div>
+                <button type="button" class="toggle-switch active" id="toggleI18n" role="switch" aria-checked="true" aria-pressed="true" aria-label="Toggle i18n translation catalog">
+                  <span class="switch-handle"></span>
+                </button>
+              </div>
             </div>
 
             <div class="divider"></div>
 
-            <!-- Listeners -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeListeners">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">listeners/ Folder</span>
-                </label>
-                <button type="button" class="btn-subtle" id="addListenerBtn" style="display: none;">+ Add Listener</button>
+            <div class="option-row">
+              <div class="option-info">
+                <span class="option-label">Unit Test Specs</span>
+                <span class="option-sub">Unit test suites for generated controllers, services, and repositories</span>
               </div>
-              <div id="listenersContainer" class="dynamic-list" style="display: none;"></div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Processors (BullMQ) -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeProcessors">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">processors/ (BullMQ Workers)</span>
-                </label>
-                <button type="button" class="btn-subtle" id="addProcessorBtn" style="display: none;">+ Add Processor</button>
+              <div class="option-controls">
+                <button type="button" class="toggle-switch" id="toggleSpecs" role="switch" aria-checked="false" aria-pressed="false" aria-label="Toggle unit test specs">
+                  <span class="switch-handle"></span>
+                </button>
               </div>
-              <div id="processorsContainer" class="dynamic-list" style="display: none;"></div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Tasks (Cron) -->
-            <div class="dynamic-group">
-              <div class="dynamic-header space-between">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeTasks">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">tasks/ (Cron / Scheduled Jobs)</span>
-                </label>
-                <button type="button" class="btn-subtle" id="addTaskBtn" style="display: none;">+ Add Task</button>
-              </div>
-              <div id="tasksContainer" class="dynamic-list" style="display: none;"></div>
             </div>
           </div>
         </div>
 
-        <!-- Testing & Localization -->
-        <div class="card">
-          <div class="card-header">
-            <h3>Testing & Localization</h3>
-          </div>
-          <div class="card-body">
-            <div class="checkbox-row">
-              <label class="custom-checkbox">
-                <input type="checkbox" id="includeSpecs">
-                <span class="checkmark"></span>
-                <span class="checkbox-title">Unit Test Specs (*.spec.ts)</span>
-              </label>
-            </div>
-
-            <div class="checkbox-row">
-              <label class="custom-checkbox">
-                <input type="checkbox" id="includeI18n" checked>
-                <span class="checkmark"></span>
-                <span class="checkbox-title">i18n Translation Catalog (src/i18n/{en,ar}/&lt;feature&gt;.json)</span>
-              </label>
-            </div>
-          </div>
+        <!-- Backwards-compatibility hidden elements for tests and planners -->
+        <div style="display: none;" aria-hidden="true">
+          <input type="checkbox" id="includeRepository" checked>
+          <input type="text" id="repositoryFileName" value="repository.ts">
+          <input type="checkbox" id="includePolicy">
+          <input type="text" id="policyFileName" value="policy.ts">
+          <input type="checkbox" id="includeInterface">
+          <input type="text" id="interfaceFileName" value="interface.ts">
+          <input type="checkbox" id="includeSpecs">
+          <input type="checkbox" id="includeI18n" checked>
+          <input type="checkbox" id="includeStores">
+          <input type="checkbox" id="includeProviders">
+          <input type="checkbox" id="includeEvents">
+          <input type="checkbox" id="includeListeners">
+          <input type="checkbox" id="includeProcessors">
+          <input type="checkbox" id="includeTasks">
+          <input type="text" id="serviceFileName" value="service.ts">
+          <input type="text" id="controllerFileName" value="controller.ts">
+          <input type="text" id="moduleFileName" value="module.ts">
+          <input type="text" id="groupedModuleFileName" value="module.ts">
+          <div id="dtoContainer"></div>
+          <button type="button" id="addDtoBtn"></button>
+          <div id="eventsContainer"></div>
+          <button type="button" id="addEventBtn"></button>
+          <div id="listenersContainer"></div>
+          <button type="button" id="addListenerBtn"></button>
+          <div id="processorsContainer"></div>
+          <button type="button" id="addProcessorBtn"></button>
+          <div id="tasksContainer"></div>
+          <button type="button" id="addTaskBtn"></button>
+          <div id="groupedCtrlContainer"></div>
+          <button type="button" id="addGroupedCtrlBtn"></button>
+          <div id="groupedSrvContainer"></div>
+          <button type="button" id="addGroupedSrvBtn"></button>
+          <div id="storesContainer"></div>
+          <button type="button" id="addStoreBtn"></button>
+          <div id="providersContainer"></div>
+          <button type="button" id="addProviderBtn"></button>
+          <div id="flatComponentsCard"></div>
+          <div id="groupedComponentsCard"></div>
         </div>
 
       </section>

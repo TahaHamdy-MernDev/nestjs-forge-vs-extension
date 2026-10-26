@@ -344,91 +344,405 @@ body {
   padding: 18px;
 }
 
-/* Layout Selector Grid (Flat vs Grouped) */
-.layout-selector-grid {
+/* Architecture Layout Segmented Control */
+.segmented-control {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 4px;
+  gap: 10px;
+  background-color: var(--vscode-editorWidget-background, rgba(0, 0, 0, 0.15));
+  border-radius: 6px;
 }
 
 @media (max-width: 600px) {
-  .layout-selector-grid {
+  .segmented-control {
     grid-template-columns: 1fr;
   }
 }
 
-.layout-card {
-  background: rgba(255, 255, 255, 0.02);
+.segment-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 14px;
+  background-color: transparent;
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  padding: 14px;
   cursor: pointer;
+  text-align: left;
   transition: all var(--transition-speed) ease;
   user-select: none;
 }
 
-.layout-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.18);
+.segment-btn:hover {
+  background-color: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.05));
+  border-color: var(--vscode-focusBorder, rgba(255, 255, 255, 0.2));
 }
 
-.layout-card.active {
-  background: rgba(14, 99, 156, 0.08);
-  border-color: var(--accent);
+.segment-btn:focus-visible {
+  outline: 1px solid var(--border-color-focus);
+  outline-offset: 1px;
 }
 
-.layout-card-header {
+.segment-btn.active {
+  background-color: var(--vscode-editor-selectionBackground, rgba(14, 99, 156, 0.15));
+  border-color: var(--border-color-focus);
+}
+
+.segment-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.segment-caption {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* Presets Row */
+.presets-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 8px;
 }
 
-.radio-indicator {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
+.presets-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.presets-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.preset-btn {
+  background-color: transparent;
+  color: var(--text-muted);
   border: 1px solid var(--border-color);
-  background: transparent;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+}
+
+.preset-btn:hover {
+  background-color: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.06));
+  color: var(--text-main);
+  border-color: var(--border-color-focus);
+}
+
+.preset-btn:focus-visible {
+  outline: 1px solid var(--border-color-focus);
+  outline-offset: 1px;
+}
+
+.preset-btn.active {
+  background-color: var(--vscode-badge-background, var(--accent));
+  color: var(--vscode-badge-foreground, #ffffff);
+  border-color: var(--vscode-badge-background, var(--accent));
+}
+
+/* Components Card & Grid */
+.components-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.section-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.component-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 10px;
+}
+
+.component-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 78px;
+  padding: 10px 12px;
+  background-color: var(--vscode-sideBar-background, rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: all var(--transition-speed) ease;
+}
+
+.component-card.active {
+  border-color: var(--vscode-focusBorder, var(--accent));
+  background-color: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.04));
+}
+
+.component-card.card-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.component-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
   flex-shrink: 0;
+}
+
+.component-card.active .component-icon {
+  color: var(--vscode-editor-foreground, var(--text-main));
+}
+
+.component-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Card Bottom Row: Stepper or Desc */
+.card-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-color);
+}
+
+.card-type-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.card-mode-badge {
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 9px;
+  color: var(--text-muted);
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  margin-left: auto;
+}
+
+/* Stepper */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stepper-btn {
+  width: 22px;
+  height: 20px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-speed);
+  background-color: transparent;
+  color: var(--text-main);
+  border: none;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
 }
 
-.layout-card.active .radio-indicator {
-  border-color: var(--accent);
-  background: var(--accent);
-  box-shadow: inset 0 0 0 2px var(--bg-card);
+.stepper-btn:hover:not(:disabled) {
+  background-color: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
-.layout-card-desc {
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-bottom: 10px;
+.stepper-btn:focus-visible {
+  outline: 1px solid var(--border-color-focus);
 }
 
-.layout-mini-tree {
+.stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.stepper-count {
+  min-width: 20px;
+  padding: 0 4px;
   font-family: var(--vscode-editor-font-family, monospace);
   font-size: 11px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 8px 10px;
-  border-radius: 4px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-main);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+}
+
+/* Toggle Switch */
+.toggle-btn {
+  width: 28px;
+  height: 16px;
+  background-color: var(--vscode-input-background, #3c3c3c);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--transition-speed) ease;
+  flex-shrink: 0;
+}
+
+.toggle-btn:focus-visible {
+  outline: 1px solid var(--border-color-focus);
+  outline-offset: 1px;
+}
+
+.toggle-dot {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+  transition: all var(--transition-speed) ease;
+}
+
+.toggle-btn.active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-btn.active .toggle-dot {
+  left: 12px;
+  background-color: #ffffff;
+}
+
+.toggle-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Options / Localization & Testing Panel */
+.options-card .card-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 12px;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.option-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.option-sub {
+  font-size: 11px;
   color: var(--text-muted);
 }
 
-.layout-mini-tree .mini-node {
-  color: #ce9178;
+.option-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.layout-mini-tree .mini-leaf {
-  padding-left: 10px;
+.locale-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.locale-chip {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background-color: var(--vscode-badge-background, rgba(255, 255, 255, 0.08));
+  color: var(--vscode-badge-foreground, var(--text-main));
+  border: 1px solid var(--border-color);
+}
+
+.toggle-switch {
+  width: 32px;
+  height: 18px;
+  background-color: var(--vscode-input-background, #3c3c3c);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--transition-speed) ease;
+}
+
+.toggle-switch:focus-visible {
+  outline: 1px solid var(--border-color-focus);
+  outline-offset: 1px;
+}
+
+.switch-handle {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+  transition: all var(--transition-speed) ease;
+}
+
+.toggle-switch.active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-switch.active .switch-handle {
+  left: 14px;
+  background-color: #ffffff;
 }
 
 /* Forms */

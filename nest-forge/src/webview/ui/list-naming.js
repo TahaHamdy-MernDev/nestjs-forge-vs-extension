@@ -3,12 +3,12 @@
     ctrl: ['', 'admin', 'public', 'internal', 'webhook'],
     srv: ['', 'query', 'command', 'validation', 'mapper'],
     store: ['', 'cache', 'session', 'read', 'write'],
-    provider: ['', '.handler', 'auth', 'events.handler'],
-    processor: ['', 'notifications', 'sync', 'export'],
-    task: ['', 'cleanup', 'report', 'sync'],
+    provider: ['', '.handler', 'auth', 'events.handler', 'internal'],
+    processor: ['', 'notifications', 'sync', 'export', 'metrics'],
+    task: ['', 'cleanup', 'report', 'sync', 'cron'],
     dto: ['create', 'update', 'filter', 'query', 'response'],
-    event: ['created', 'updated', 'deleted'],
-    listener: ['created', 'updated', 'deleted'],
+    event: ['created', 'updated', 'deleted', 'failed', 'completed'],
+    listener: ['created', 'updated', 'deleted', 'failed', 'completed'],
   };
 
   function autoName(kebab, suffix, kind) {

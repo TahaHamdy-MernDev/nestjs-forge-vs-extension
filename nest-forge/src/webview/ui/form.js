@@ -13,6 +13,15 @@ const targetPathInput = document.getElementById('targetPathInput');
 const parentModuleText = document.getElementById('parentModuleText');
 const parentModuleInput = document.getElementById('parentModuleInput');
 
+const segFlat = document.getElementById('segFlat');
+const segGrouped = document.getElementById('segGrouped');
+const presetCrud = document.getElementById('presetCrud');
+const presetDomain = document.getElementById('presetDomain');
+const presetMinimal = document.getElementById('presetMinimal');
+const toggleI18n = document.getElementById('toggleI18n');
+const toggleSpecs = document.getElementById('toggleSpecs');
+const componentGrid = document.getElementById('componentGrid');
+
 const modeFlat = document.getElementById('modeFlat');
 const modeGrouped = document.getElementById('modeGrouped');
 const modeFlatCard = document.getElementById('modeFlatCard');
@@ -114,6 +123,107 @@ let storeList = [{ suffix: '' }];
 let providerList = [{ suffix: '' }];
 let processorList = [{ suffix: '' }];
 let taskList = [{ suffix: '' }];
+
+// Plain Data Table for Presets
+const PRESETS = {
+  crud: {
+    id: 'crud',
+    label: 'Standard CRUD',
+    structureMode: 'flat',
+    components: {
+      controller: { enabled: true, count: 1 },
+      service: { enabled: true, count: 1 },
+      repository: { enabled: true },
+      dto: { enabled: true, count: 2 },
+      store: { enabled: false, count: 1 },
+      provider: { enabled: false, count: 1 },
+      policy: { enabled: false },
+      interface: { enabled: false },
+      event: { enabled: false, count: 1 },
+      listener: { enabled: false, count: 1 },
+      processor: { enabled: false, count: 1 },
+      task: { enabled: false, count: 1 },
+      spec: { enabled: false },
+    },
+    i18n: true,
+  },
+  domain: {
+    id: 'domain',
+    label: 'Full domain',
+    structureMode: 'grouped',
+    components: {
+      controller: { enabled: true, count: 1 },
+      service: { enabled: true, count: 1 },
+      repository: { enabled: true },
+      store: { enabled: true, count: 1 },
+      provider: { enabled: true, count: 1 },
+      dto: { enabled: true, count: 2 },
+      policy: { enabled: true },
+      interface: { enabled: true },
+      event: { enabled: true, count: 1 },
+      listener: { enabled: true, count: 1 },
+      processor: { enabled: true, count: 1 },
+      task: { enabled: true, count: 1 },
+      spec: { enabled: true },
+    },
+    i18n: true,
+  },
+  minimal: {
+    id: 'minimal',
+    label: 'Minimal',
+    structureMode: 'flat',
+    components: {
+      controller: { enabled: true, count: 1 },
+      service: { enabled: true, count: 1 },
+      repository: { enabled: false },
+      dto: { enabled: false, count: 1 },
+      store: { enabled: false, count: 1 },
+      provider: { enabled: false, count: 1 },
+      policy: { enabled: false },
+      interface: { enabled: false },
+      event: { enabled: false, count: 1 },
+      listener: { enabled: false, count: 1 },
+      processor: { enabled: false, count: 1 },
+      task: { enabled: false, count: 1 },
+      spec: { enabled: false },
+    },
+    i18n: false,
+  },
+};
+
+// Component Cards State
+const componentCards = {
+  controller: { enabled: true, count: 1, multi: true, kind: 'ctrl' },
+  service: { enabled: true, count: 1, multi: true, kind: 'srv' },
+  repository: { enabled: true, count: 1, multi: false },
+  store: { enabled: false, count: 1, multi: true, kind: 'store' },
+  provider: { enabled: false, count: 1, multi: true, kind: 'provider' },
+  policy: { enabled: false, count: 1, multi: false },
+  interface: { enabled: false, count: 1, multi: false },
+  dto: { enabled: true, count: 2, multi: true, kind: 'dto' },
+  event: { enabled: false, count: 1, multi: true, kind: 'event' },
+  listener: { enabled: false, count: 1, multi: true, kind: 'listener' },
+  processor: { enabled: false, count: 1, multi: true, kind: 'processor' },
+  task: { enabled: false, count: 1, multi: true, kind: 'task' },
+  spec: { enabled: false, count: 1, multi: false },
+};
+
+let isI18nEnabled = true;
+
+function getListForKind(key) {
+  switch (key) {
+    case 'controller': return groupedCtrlList;
+    case 'service': return groupedSrvList;
+    case 'store': return storeList;
+    case 'provider': return providerList;
+    case 'dto': return dtoList;
+    case 'event': return eventList;
+    case 'listener': return listenerList;
+    case 'processor': return processorList;
+    case 'task': return taskList;
+    default: return null;
+  }
+}
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -579,66 +689,204 @@ function renderDynamicLists(skipSync = false) {
 }
 
 function getFormState() {
-  const featureName = featureNameInput.value.trim();
+  const featureName = featureNameInput ? featureNameInput.value.trim() : '';
+  const names = deriveNames(featureName);
+  const kebab = names.kebab || featureName || 'item';
 
-  const dtoInputs = Array.from(document.querySelectorAll('.dto-item-input'));
-  const dtoFiles = dtoInputs.map((i) => ({ name: i.value.trim().replace(/\.dto\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // DTOs
+  let dtoFiles = [];
+  if (componentCards.dto.enabled) {
+    const count = componentCards.dto.count;
+    while (dtoList.length < count) {
+      const next = window.NestForgeListNaming
+        ? window.NestForgeListNaming.nextItem('dto', dtoList, kebab)
+        : { suffix: 'item' };
+      dtoList.push(next);
+    }
+    dtoFiles = dtoList.slice(0, count).map((item) => {
+      const name = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(item, kebab, 'dto')
+        : (item.custom || (item.suffix ? `${item.suffix}-${kebab}` : kebab));
+      return { name };
+    }).filter((x) => Boolean(x.name));
+  }
 
-  const eventInputs = Array.from(document.querySelectorAll('.event-item-input'));
-  const eventFiles = eventInputs.map((i) => ({ name: i.value.trim().replace(/\.event\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Events
+  const includeEvents = componentCards.event.enabled;
+  const countEvents = componentCards.event.count;
+  while (eventList.length < countEvents) {
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('event', eventList, kebab)
+      : { suffix: 'event' };
+    eventList.push(next);
+  }
+  const eventFiles = eventList.slice(0, countEvents).map((item) => {
+    const name = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(item, kebab, 'event')
+      : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+    return { name };
+  }).filter((x) => Boolean(x.name));
 
-  const listenerInputs = Array.from(document.querySelectorAll('.listener-item-input'));
-  const listenerFiles = listenerInputs.map((i) => ({ name: i.value.trim().replace(/\.listener\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Listeners
+  const includeListeners = componentCards.listener.enabled;
+  const countListeners = componentCards.listener.count;
+  while (listenerList.length < countListeners) {
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('listener', listenerList, kebab)
+      : { suffix: 'listener' };
+    listenerList.push(next);
+  }
+  const listenerFiles = listenerList.slice(0, countListeners).map((item) => {
+    const name = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(item, kebab, 'listener')
+      : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+    return { name };
+  }).filter((x) => Boolean(x.name));
 
-  const processorInputs = Array.from(document.querySelectorAll('.processor-item-input'));
-  const processorFiles = processorInputs.map((i) => ({ name: i.value.trim().replace(/\.processor\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Processors
+  const includeProcessors = componentCards.processor.enabled;
+  const countProcessors = componentCards.processor.count;
+  while (processorList.length < countProcessors) {
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('processor', processorList, kebab)
+      : { suffix: 'processor' };
+    processorList.push(next);
+  }
+  const processorFiles = processorList.slice(0, countProcessors).map((item) => {
+    const name = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(item, kebab, 'processor')
+      : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+    return { name };
+  }).filter((x) => Boolean(x.name));
 
-  const taskInputs = Array.from(document.querySelectorAll('.task-item-input'));
-  const taskFiles = taskInputs.map((i) => ({ name: i.value.trim().replace(/\.task\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Tasks
+  const includeTasks = componentCards.task.enabled;
+  const countTasks = componentCards.task.count;
+  while (taskList.length < countTasks) {
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('task', taskList, kebab)
+      : { suffix: 'task' };
+    taskList.push(next);
+  }
+  const taskFiles = taskList.slice(0, countTasks).map((item) => {
+    const name = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(item, kebab, 'task')
+      : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+    return { name };
+  }).filter((x) => Boolean(x.name));
 
-  const ctrlInputs = Array.from(document.querySelectorAll('.ctrl-item-input'));
-  const controllerFiles = ctrlInputs.map((i) => ({ name: i.value.trim().replace(/\.controller\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Stores (grouped only)
+  const includeStores = structureMode === 'grouped' && componentCards.store.enabled;
+  const countStores = componentCards.store.count;
+  while (storeList.length < countStores) {
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('store', storeList, kebab)
+      : { suffix: 'store' };
+    storeList.push(next);
+  }
+  const storeFiles = storeList.slice(0, countStores).map((item) => {
+    const name = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(item, kebab, 'store')
+      : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+    return { name };
+  }).filter((x) => Boolean(x.name));
 
-  const srvInputs = Array.from(document.querySelectorAll('.srv-item-input'));
-  const serviceFiles = srvInputs.map((i) => ({ name: i.value.trim().replace(/\.service\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Providers (grouped only)
+  const includeProviders = structureMode === 'grouped' && componentCards.provider.enabled;
+  const countProviders = componentCards.provider.count;
+  while (providerList.length < countProviders) {
+    const next = window.NestForgeListNaming
+      ? window.NestForgeListNaming.nextItem('provider', providerList, kebab)
+      : { suffix: 'provider' };
+    providerList.push(next);
+  }
+  const providerFiles = providerList.slice(0, countProviders).map((item) => {
+    const name = window.NestForgeListNaming
+      ? window.NestForgeListNaming.itemName(item, kebab, 'provider')
+      : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+    return { name };
+  }).filter((x) => Boolean(x.name));
 
-  const storeInputs = Array.from(document.querySelectorAll('.store-item-input'));
-  const storeFiles = storeInputs.map((i) => ({ name: i.value.trim().replace(/\.store\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Controllers (grouped vs flat)
+  let controllerFiles = [];
+  if (structureMode === 'grouped') {
+    const countCtrl = componentCards.controller.count;
+    while (groupedCtrlList.length < countCtrl) {
+      const next = window.NestForgeListNaming
+        ? window.NestForgeListNaming.nextItem('ctrl', groupedCtrlList, kebab)
+        : { suffix: 'ctrl' };
+      groupedCtrlList.push(next);
+    }
+    controllerFiles = groupedCtrlList.slice(0, countCtrl).map((item) => {
+      const name = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(item, kebab, 'ctrl')
+        : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+      return { name };
+    }).filter((x) => Boolean(x.name));
+  } else {
+    controllerFiles = [{ name: (controllerFileName && controllerFileName.value.trim()) || `${kebab}.controller.ts` }];
+  }
 
-  const providerInputs = Array.from(document.querySelectorAll('.provider-item-input'));
-  const providerFiles = providerInputs.map((i) => ({ name: i.value.trim().replace(/\.provider\.ts$/, '').replace(/\.ts$/, '') })).filter((x) => Boolean(x.name));
+  // Services (grouped vs flat)
+  let serviceFiles = [];
+  if (structureMode === 'grouped') {
+    const countSrv = componentCards.service.count;
+    while (groupedSrvList.length < countSrv) {
+      const next = window.NestForgeListNaming
+        ? window.NestForgeListNaming.nextItem('srv', groupedSrvList, kebab)
+        : { suffix: 'srv' };
+      groupedSrvList.push(next);
+    }
+    serviceFiles = groupedSrvList.slice(0, countSrv).map((item) => {
+      const name = window.NestForgeListNaming
+        ? window.NestForgeListNaming.itemName(item, kebab, 'srv')
+        : (item.custom || (item.suffix ? `${kebab}-${item.suffix}` : kebab));
+      return { name };
+    }).filter((x) => Boolean(x.name));
+  } else {
+    serviceFiles = [{ name: (serviceFileName && serviceFileName.value.trim()) || `${kebab}.service.ts` }];
+  }
+
+  const srvFileName = (serviceFileName && serviceFileName.value.trim()) || `${kebab}.service.ts`;
+  const ctrlFileName = (controllerFileName && controllerFileName.value.trim()) || `${kebab}.controller.ts`;
+  const modFileName = structureMode === 'grouped'
+    ? (groupedModuleFileName?.value?.trim() || `${kebab}.module.ts`)
+    : ((moduleFileName && moduleFileName.value.trim()) || `${kebab}.module.ts`);
+  const repoFileName = (repositoryFileName && repositoryFileName.value.trim()) || `${kebab}.repository.ts`;
+  const polFileName = (policyFileName && policyFileName.value.trim()) || `${kebab}.policy.ts`;
+  const ifaceFileName = (interfaceFileName && interfaceFileName.value.trim()) || `${kebab}.interface.ts`;
 
   return {
     featureName,
     routePath: routePathInput ? routePathInput.value.trim() : '',
     structureMode,
-    targetPath: targetPathInput.value.trim(),
-    parentModulePath: parentModuleInput.value.trim(),
-    serviceFileName: serviceFileName.value.trim(),
-    controllerFileName: controllerFileName.value.trim(),
-    moduleFileName: structureMode === 'grouped' ? (groupedModuleFileName?.value.trim() || `${featureName}.module.ts`) : moduleFileName.value.trim(),
-    includeRepository: includeRepository.checked,
-    repositoryFileName: repositoryFileName.value.trim(),
-    includePolicy: includePolicy ? includePolicy.checked : false,
-    policyFileName: policyFileName ? policyFileName.value.trim() : `${featureName}.policy.ts`,
-    includeInterface: includeInterface.checked,
-    interfaceFileName: interfaceFileName.value.trim(),
-    includeSpecs: includeSpecs.checked,
-    includeI18n: includeI18n ? includeI18n.checked : false,
-    includeStores: includeStores ? includeStores.checked : true,
+    targetPath: targetPathInput ? targetPathInput.value.trim() : '',
+    parentModulePath: parentModuleInput ? parentModuleInput.value.trim() : '',
+    serviceFileName: srvFileName,
+    controllerFileName: ctrlFileName,
+    moduleFileName: modFileName,
+    includeRepository: componentCards.repository.enabled,
+    repositoryFileName: repoFileName,
+    includePolicy: componentCards.policy.enabled,
+    policyFileName: polFileName,
+    includeInterface: componentCards.interface.enabled,
+    interfaceFileName: ifaceFileName,
+    includeSpecs: componentCards.spec.enabled,
+    includeI18n: isI18nEnabled,
+    includeStores,
     storeFiles,
-    includeProviders: includeProviders ? includeProviders.checked : true,
+    includeProviders,
     providerFiles,
-    includeProcessors: includeProcessors ? includeProcessors.checked : false,
+    includeProcessors,
     processorFiles,
-    includeTasks: includeTasks ? includeTasks.checked : false,
+    includeTasks,
     taskFiles,
     controllerFiles,
     serviceFiles,
     dtoFiles,
-    includeEvents: includeEvents.checked,
+    includeEvents,
     eventFiles,
-    includeListeners: includeListeners.checked,
+    includeListeners,
     listenerFiles,
   };
 }
@@ -767,27 +1015,252 @@ function renderPreviewTree(plans) {
 
 // Event Listeners
 function selectArchitectureMode(mode) {
-  structureMode = mode;
-  if (mode === 'flat') {
-    if (modeFlat) modeFlat.classList.add('active');
-    if (modeGrouped) modeGrouped.classList.remove('active');
-    if (modeFlatCard) modeFlatCard.classList.add('active');
-    if (modeGroupedCard) modeGroupedCard.classList.remove('active');
-    if (flatComponentsCard) flatComponentsCard.style.display = 'block';
-    if (groupedComponentsCard) groupedComponentsCard.style.display = 'none';
-    requestPreview();
-  } else {
-    structureMode = 'grouped';
-    if (modeGrouped) modeGrouped.classList.add('active');
-    if (modeFlat) modeFlat.classList.remove('active');
-    if (modeGroupedCard) modeGroupedCard.classList.add('active');
-    if (modeFlatCard) modeFlatCard.classList.remove('active');
-    if (flatComponentsCard) flatComponentsCard.style.display = 'none';
-    if (groupedComponentsCard) groupedComponentsCard.style.display = 'block';
+  structureMode = mode === 'grouped' ? 'grouped' : 'flat';
 
-    renderDynamicLists(true);
+  const segFlatEl = document.getElementById('segFlat');
+  const segGroupedEl = document.getElementById('segGrouped');
+  if (segFlatEl) {
+    segFlatEl.classList.toggle('active', structureMode === 'flat');
+    segFlatEl.setAttribute('aria-checked', structureMode === 'flat' ? 'true' : 'false');
+    segFlatEl.setAttribute('tabindex', structureMode === 'flat' ? '0' : '-1');
+  }
+  if (segGroupedEl) {
+    segGroupedEl.classList.toggle('active', structureMode === 'grouped');
+    segGroupedEl.setAttribute('aria-checked', structureMode === 'grouped' ? 'true' : 'false');
+    segGroupedEl.setAttribute('tabindex', structureMode === 'grouped' ? '0' : '-1');
+  }
+
+  if (modeFlat) modeFlat.classList.toggle('active', structureMode === 'flat');
+  if (modeGrouped) modeGrouped.classList.toggle('active', structureMode === 'grouped');
+  if (modeFlatCard) modeFlatCard.classList.toggle('active', structureMode === 'flat');
+  if (modeGroupedCard) modeGroupedCard.classList.toggle('active', structureMode === 'grouped');
+  if (flatComponentsCard) flatComponentsCard.style.display = structureMode === 'flat' ? 'block' : 'none';
+  if (groupedComponentsCard) groupedComponentsCard.style.display = structureMode === 'grouped' ? 'block' : 'none';
+
+  const cardStore = document.getElementById('card-store');
+  const cardProvider = document.getElementById('card-provider');
+  const toggleStore = document.getElementById('toggle-store');
+  const toggleProvider = document.getElementById('toggle-provider');
+  const badgeCtrl = document.getElementById('badge-controller');
+  const badgeSrv = document.getElementById('badge-service');
+
+  if (structureMode === 'flat') {
+    if (cardStore) {
+      cardStore.classList.add('card-disabled');
+      cardStore.setAttribute('aria-disabled', 'true');
+    }
+    if (cardProvider) {
+      cardProvider.classList.add('card-disabled');
+      cardProvider.setAttribute('aria-disabled', 'true');
+    }
+    if (toggleStore) toggleStore.disabled = true;
+    if (toggleProvider) toggleProvider.disabled = true;
+    if (badgeCtrl) badgeCtrl.textContent = 'Root';
+    if (badgeSrv) badgeSrv.textContent = 'Root';
+  } else {
+    if (cardStore) {
+      cardStore.classList.remove('card-disabled');
+      cardStore.removeAttribute('aria-disabled');
+    }
+    if (cardProvider) {
+      cardProvider.classList.remove('card-disabled');
+      cardProvider.removeAttribute('aria-disabled');
+    }
+    if (toggleStore) toggleStore.disabled = false;
+    if (toggleProvider) toggleProvider.disabled = false;
+    if (badgeCtrl) badgeCtrl.textContent = 'controllers/';
+    if (badgeSrv) badgeSrv.textContent = 'services/';
+  }
+
+  syncLegacyCheckboxes();
+  renderDynamicLists(true);
+  requestPreview();
+}
+
+function syncLegacyCheckboxes() {
+  if (includeRepository) includeRepository.checked = componentCards.repository.enabled;
+  if (includePolicy) includePolicy.checked = componentCards.policy.enabled;
+  if (includeInterface) includeInterface.checked = componentCards.interface.enabled;
+  if (includeSpecs) includeSpecs.checked = componentCards.spec.enabled;
+  if (includeI18n) includeI18n.checked = isI18nEnabled;
+  if (includeStores) includeStores.checked = structureMode === 'grouped' && componentCards.store.enabled;
+  if (includeProviders) includeProviders.checked = structureMode === 'grouped' && componentCards.provider.enabled;
+  if (includeEvents) includeEvents.checked = componentCards.event.enabled;
+  if (includeListeners) includeListeners.checked = componentCards.listener.enabled;
+  if (includeProcessors) includeProcessors.checked = componentCards.processor.enabled;
+  if (includeTasks) includeTasks.checked = componentCards.task.enabled;
+}
+
+function setComponentCount(key, count, shouldRequestPreview = true) {
+  const card = componentCards[key];
+  if (!card || !card.multi) return;
+  const clamped = Math.max(1, Math.min(5, Math.floor(count)));
+  card.count = clamped;
+
+  const countEl = document.getElementById(`count-${key}`);
+  if (countEl) countEl.textContent = String(clamped);
+
+  const minusBtn = document.getElementById(`stepper-minus-${key}`);
+  if (minusBtn) minusBtn.disabled = !card.enabled || clamped <= 1;
+
+  const plusBtn = document.getElementById(`stepper-plus-${key}`);
+  if (plusBtn) plusBtn.disabled = !card.enabled || clamped >= 5;
+
+  const list = getListForKind(key);
+  if (list) {
+    const raw = featureNameInput ? featureNameInput.value.trim() : '';
+    const names = deriveNames(raw);
+    const kebab = names.kebab || raw || 'item';
+    while (list.length < clamped) {
+      const next = window.NestForgeListNaming
+        ? window.NestForgeListNaming.nextItem(card.kind || key, list, kebab)
+        : { suffix: String(list.length + 1) };
+      list.push(next);
+    }
+    if (list.length > clamped) {
+      list.length = clamped;
+    }
+  }
+
+  renderDynamicLists(true);
+
+  if (shouldRequestPreview) {
     requestPreview();
   }
+}
+
+function setComponentEnabled(key, enabled, shouldRequestPreview = true) {
+  const card = componentCards[key];
+  if (!card) return;
+  card.enabled = Boolean(enabled);
+
+  const cardEl = document.getElementById(`card-${key}`);
+  if (cardEl) {
+    cardEl.classList.toggle('active', card.enabled);
+  }
+
+  const toggleBtn = document.getElementById(`toggle-${key}`);
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('active', card.enabled);
+    toggleBtn.setAttribute('aria-pressed', card.enabled ? 'true' : 'false');
+    toggleBtn.setAttribute('aria-checked', card.enabled ? 'true' : 'false');
+  }
+
+  if (card.multi) {
+    const minusBtn = document.getElementById(`stepper-minus-${key}`);
+    const plusBtn = document.getElementById(`stepper-plus-${key}`);
+    if (minusBtn) minusBtn.disabled = !card.enabled || card.count <= 1;
+    if (plusBtn) plusBtn.disabled = !card.enabled || card.count >= 5;
+  }
+
+  if (key === 'spec') {
+    const toggleSpecs = document.getElementById('toggleSpecs');
+    if (toggleSpecs) {
+      toggleSpecs.classList.toggle('active', card.enabled);
+      toggleSpecs.setAttribute('aria-pressed', card.enabled ? 'true' : 'false');
+      toggleSpecs.setAttribute('aria-checked', card.enabled ? 'true' : 'false');
+    }
+  }
+
+  syncLegacyCheckboxes();
+
+  if (shouldRequestPreview) {
+    requestPreview();
+  }
+}
+
+function applyPreset(presetKey) {
+  const preset = PRESETS[presetKey];
+  if (!preset) return;
+
+  const keys = ['crud', 'domain', 'minimal'];
+  keys.forEach((k) => {
+    const btn = document.getElementById(`preset${capitalize(k)}`);
+    if (btn) btn.classList.toggle('active', k === presetKey);
+  });
+
+  selectArchitectureMode(preset.structureMode);
+
+  Object.entries(preset.components).forEach(([key, cfg]) => {
+    if (cfg.count !== undefined) {
+      setComponentCount(key, cfg.count, false);
+    }
+    setComponentEnabled(key, cfg.enabled, false);
+  });
+
+  isI18nEnabled = Boolean(preset.i18n);
+  const toggleI18n = document.getElementById('toggleI18n');
+  if (toggleI18n) {
+    toggleI18n.classList.toggle('active', isI18nEnabled);
+    toggleI18n.setAttribute('aria-pressed', isI18nEnabled ? 'true' : 'false');
+    toggleI18n.setAttribute('aria-checked', isI18nEnabled ? 'true' : 'false');
+  }
+
+  syncLegacyCheckboxes();
+  renderDynamicLists(true);
+  requestPreview();
+}
+
+if (segFlat) {
+  segFlat.addEventListener('click', () => selectArchitectureMode('flat'));
+}
+
+if (segGrouped) {
+  segGrouped.addEventListener('click', () => selectArchitectureMode('grouped'));
+}
+
+if (presetCrud) {
+  presetCrud.addEventListener('click', () => applyPreset('crud'));
+}
+
+if (presetDomain) {
+  presetDomain.addEventListener('click', () => applyPreset('domain'));
+}
+
+if (presetMinimal) {
+  presetMinimal.addEventListener('click', () => applyPreset('minimal'));
+}
+
+if (toggleI18n) {
+  toggleI18n.addEventListener('click', () => {
+    isI18nEnabled = !isI18nEnabled;
+    toggleI18n.classList.toggle('active', isI18nEnabled);
+    toggleI18n.setAttribute('aria-pressed', isI18nEnabled ? 'true' : 'false');
+    toggleI18n.setAttribute('aria-checked', isI18nEnabled ? 'true' : 'false');
+    syncLegacyCheckboxes();
+    requestPreview();
+  });
+}
+
+if (toggleSpecs) {
+  toggleSpecs.addEventListener('click', () => {
+    const next = !componentCards.spec.enabled;
+    setComponentEnabled('spec', next, true);
+  });
+}
+
+if (componentGrid) {
+  componentGrid.addEventListener('click', (e) => {
+    const toggleBtn = e.target.closest('[data-toggle]');
+    if (toggleBtn && !toggleBtn.disabled) {
+      const key = toggleBtn.getAttribute('data-toggle');
+      if (key && componentCards[key]) {
+        setComponentEnabled(key, !componentCards[key].enabled, true);
+      }
+      return;
+    }
+
+    const stepperBtn = e.target.closest('[data-stepper-for]');
+    if (stepperBtn && !stepperBtn.disabled) {
+      const key = stepperBtn.getAttribute('data-stepper-for');
+      const dir = parseInt(stepperBtn.getAttribute('data-dir'), 10) || 0;
+      if (key && componentCards[key]) {
+        const nextCount = componentCards[key].count + dir;
+        setComponentCount(key, nextCount, true);
+      }
+      return;
+    }
+  });
 }
 
 if (modeFlat) {
@@ -1208,4 +1681,31 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize
 vscode.postMessage({ command: 'init' });
+
+// Exports for unit tests and global access
+const _root = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this);
+if (_root) {
+  _root.PRESETS = PRESETS;
+  _root.componentCards = componentCards;
+  _root.applyPreset = applyPreset;
+  _root.setComponentCount = setComponentCount;
+  _root.setComponentEnabled = setComponentEnabled;
+  _root.selectArchitectureMode = selectArchitectureMode;
+  _root.getFormState = getFormState;
+  _root.onFeatureNameChange = onFeatureNameChange;
+  _root.syncCurrentDynamicInputs = syncCurrentDynamicInputs;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    PRESETS,
+    componentCards,
+    applyPreset,
+    setComponentCount,
+    setComponentEnabled,
+    selectArchitectureMode,
+    getFormState,
+    onFeatureNameChange,
+    syncCurrentDynamicInputs,
+  };
+}
 
