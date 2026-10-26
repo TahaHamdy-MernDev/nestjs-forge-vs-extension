@@ -9,11 +9,11 @@
 </head>
 <body>
   <div class="forge-container">
-    <!-- Studio Header -->
+    <!-- Top Bar Header -->
     <header class="forge-header">
       <div class="brand">
         <span class="icon">
-          <svg class="hi-icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="hi-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19h16" />
             <path d="M8 19v-2.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5V19" />
             <path d="M3 10.5h18c.55 0 1 .45 1 1v1c0 1.38-1.12 2.5-2.5 2.5H6.5C4.57 15 3 13.43 3 11.5v-1z" />
@@ -23,395 +23,356 @@
         <div class="brand-text">
           <div class="brand-title-row">
             <h1>Nest Forge</h1>
-            <span class="studio-badge">Modern Studio</span>
+            <span class="studio-badge">New Feature</span>
           </div>
           <p class="subtitle">Scaffold modular, clean-architecture NestJS feature packages</p>
         </div>
       </div>
       <div class="header-actions">
-        <div class="preset-pill" id="presetPill">Drizzle • Class-Validator</div>
+        <div class="preset-pill" id="presetPill" role="status">Drizzle • Class-Validator</div>
       </div>
     </header>
 
-    <!-- Studio Navigation Tabs -->
-    <nav class="studio-tabs" role="tablist">
-      <button type="button" class="studio-tab active" data-tab="tab-identity" role="tab" aria-selected="true">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16a1 1 0 001 1h14a1 1 0 001-1V8.5L14.5 3H5a1 1 0 00-1 1z" /><path d="M14 3v5.5H20" /></svg>
-        <span>1. Identity & Scope</span>
-      </button>
-      <button type="button" class="studio-tab" data-tab="tab-arch" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        <span>2. Architecture & Components</span>
-      </button>
-      <button type="button" class="studio-tab" data-tab="tab-events" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-        <span>3. Events, Jobs & DTOs</span>
-      </button>
-      <button type="button" class="studio-tab" data-tab="tab-i18n" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-        <span>4. i18n & Options</span>
-      </button>
-    </nav>
-
     <main class="forge-layout">
-      <!-- Left Column: Studio Form Sections -->
+      <!-- Left Column: Controls -->
       <section class="form-column">
 
-        <!-- TAB 1: IDENTITY & SCOPE -->
-        <div class="tab-pane active" id="tab-identity">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-header-title">
-                <h3>Feature Module Identity</h3>
-                <span class="step-chip">Step 1</span>
+        <!-- Identity Card -->
+        <div class="card identity-card">
+          <div class="card-body">
+            <div class="form-group identity-group">
+              <label for="featureNameInput" class="identity-label">Feature Name <span class="required">*</span></label>
+              <div class="identity-input-wrapper">
+                <input type="text" id="featureNameInput" class="identity-input" placeholder="e.g. order, payment-method, user-profile" autofocus autocomplete="off">
               </div>
-              <p class="card-subtitle">Set up the domain name, target location, and API endpoints.</p>
+              
+              <!-- Derived Name Chips -->
+              <div class="derived-chips" id="nameChips" style="display: none;">
+                <span class="derived-chip">
+                  <span class="chip-label">Pascal</span>
+                  <code id="pascalChip" class="chip-val"></code>
+                </span>
+                <span class="derived-chip">
+                  <span class="chip-label">kebab</span>
+                  <code id="kebabChip" class="chip-val"></code>
+                </span>
+                <span class="derived-chip">
+                  <span class="chip-label">route</span>
+                  <code id="routeChip" class="chip-val"></code>
+                </span>
+              </div>
+
+              <!-- Suspicious Pluralization Warning -->
+              <div class="plural-warning" id="pluralWarning" role="alert" aria-live="polite" style="display: none;"></div>
             </div>
-            <div class="card-body">
-              <div class="form-group">
-                <label for="featureNameInput">Feature Name <span class="required">*</span></label>
-                <div class="input-with-feedback">
-                  <input type="text" id="featureNameInput" placeholder="e.g. order, payment-method, user-profile" autofocus autocomplete="off">
-                </div>
-                <div class="hint">Type kebab or camelCase; class names, files, and route paths derive in real-time.</div>
-              </div>
 
-              <div class="form-row">
-                <div class="form-group flex-1">
-                  <label for="routePathInput">API Route Prefix</label>
-                  <div class="input-prefix-wrapper">
-                    <span class="prefix">/</span>
-                    <input type="text" id="routePathInput" placeholder="orders">
-                  </div>
-                </div>
-                <div class="form-group flex-1">
-                  <label for="targetPathInput">Target Directory</label>
-                  <input type="text" id="targetPathInput" placeholder="src/features/order">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="parentModuleInput">Parent Module Registration</label>
-                <input type="text" id="parentModuleInput" placeholder="src/features/features.module.ts">
-                <div class="hint">Safely registered inside the parent module's <code>@Module({ imports: [...] })</code> AST array.</div>
-              </div>
-
-              <div class="tab-footer-actions">
-                <button type="button" class="btn-step" data-next="tab-arch">Next: Architecture & Layers &rarr;</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB 2: ARCHITECTURE & COMPONENTS -->
-        <div class="tab-pane" id="tab-arch">
-          <!-- Architecture Layout Switcher Card -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-header-title">
-                <h3>Architecture Layout</h3>
-                <span class="step-chip">Step 2</span>
-              </div>
-              <p class="card-subtitle">Choose how components and files are organized in the file system.</p>
-            </div>
-            <div class="card-body">
-              <div class="layout-selector-grid">
-                <!-- Flat Option -->
-                <div class="layout-card active" id="modeFlatCard" data-mode="flat">
-                  <div class="layout-card-header">
-                    <div class="radio-indicator"></div>
-                    <div>
-                      <strong>Flat Architecture</strong>
-                      <span class="tag tag-preset">Standard NestJS</span>
+            <!-- Collapsible Advanced Section -->
+            <details class="advanced-section">
+              <summary class="advanced-summary">
+                <span class="summary-title">Advanced Configuration</span>
+                <span class="summary-sub">Route prefix, target directory &amp; parent module</span>
+              </summary>
+              <div class="advanced-content">
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label for="routePathInput">API Route Prefix</label>
+                    <div class="input-prefix-wrapper">
+                      <span class="prefix">/</span>
+                      <input type="text" id="routePathInput" placeholder="orders">
                     </div>
                   </div>
-                  <p class="layout-card-desc">Keeps controller, service, and module at feature root. Clean and direct for standard domain modules.</p>
-                  <div class="layout-mini-tree">
-                    <span class="mini-node">📁 src/features/&lt;name&gt;/</span>
-                    <span class="mini-leaf">📄 controller.ts</span>
-                    <span class="mini-leaf">📄 service.ts</span>
-                    <span class="mini-leaf">📄 module.ts</span>
+                  <div class="form-group flex-1">
+                    <label for="targetPathInput">Target Directory</label>
+                    <input type="text" id="targetPathInput" placeholder="src/features/order">
                   </div>
                 </div>
 
-                <!-- Grouped Option -->
-                <div class="layout-card" id="modeGroupedCard" data-mode="grouped">
-                  <div class="layout-card-header">
-                    <div class="radio-indicator"></div>
-                    <div>
-                      <strong>Grouped Subfolders</strong>
-                      <span class="tag tag-preset">Enterprise Auth Style</span>
-                    </div>
+                <div class="form-group">
+                  <div class="parent-module-header">
+                    <label for="parentModuleInput">Parent Module Registration</label>
+                    <span class="parent-module-preview">Default: <code id="parentModuleText"></code></span>
                   </div>
-                  <p class="layout-card-desc">Isolates multiple controllers, services, stores, and custom providers into structured subfolders.</p>
-                  <div class="layout-mini-tree">
-                    <span class="mini-node">📁 src/features/&lt;name&gt;/</span>
-                    <span class="mini-leaf">📁 controllers/</span>
-                    <span class="mini-leaf">📁 services/</span>
-                    <span class="mini-leaf">📁 stores/ &amp; providers/</span>
-                  </div>
+                  <input type="text" id="parentModuleInput" placeholder="src/features/features.module.ts">
+                  <div class="hint">Registered inside the parent module's <code>@Module({ imports: [...] })</code> AST array. Override here if needed.</div>
                 </div>
               </div>
-
-              <!-- Hidden native mode pills for backward compatibility with existing tests -->
-              <div style="display: none;">
-                <button type="button" id="modeFlat" data-mode="flat">Flat</button>
-                <button type="button" id="modeGrouped" data-mode="grouped">Grouped</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Flat Mode Components -->
-          <div class="card" id="flatComponentsCard">
-            <div class="card-header">
-              <h3>Core Components <span class="badge">Flat Architecture</span></h3>
-            </div>
-            <div class="card-body">
-              <div class="file-row">
-                <span class="file-label">Service:</span>
-                <input type="text" id="serviceFileName" class="code-input" value="service.ts">
-              </div>
-              <div class="file-row">
-                <span class="file-label">Controller:</span>
-                <input type="text" id="controllerFileName" class="code-input" value="controller.ts">
-              </div>
-              <div class="file-row">
-                <span class="file-label">Module:</span>
-                <input type="text" id="moduleFileName" class="code-input" value="module.ts">
-              </div>
-            </div>
-          </div>
-
-          <!-- Grouped Mode Components -->
-          <div class="card" id="groupedComponentsCard" style="display: none;">
-            <div class="card-header">
-              <h3>Subfolder Components <span class="badge">Grouped Architecture</span></h3>
-            </div>
-            <div class="card-body">
-              <div class="file-row">
-                <span class="file-label">Module (root):</span>
-                <input type="text" id="groupedModuleFileName" class="code-input" value="module.ts">
-              </div>
-
-              <div class="divider"></div>
-
-              <!-- Controllers List -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <span class="file-label" style="font-weight: 600;">controllers/ Subfolder</span>
-                  <button type="button" class="btn-subtle" id="addGroupedCtrlBtn">+ Add Controller</button>
-                </div>
-                <div id="groupedCtrlContainer" class="dynamic-list"></div>
-              </div>
-
-              <div class="divider"></div>
-
-              <!-- Services List -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <span class="file-label" style="font-weight: 600;">services/ Subfolder</span>
-                  <button type="button" class="btn-subtle" id="addGroupedSrvBtn">+ Add Service</button>
-                </div>
-                <div id="groupedSrvContainer" class="dynamic-list"></div>
-              </div>
-
-              <div class="divider"></div>
-
-              <!-- Stores List -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <label class="custom-checkbox">
-                    <input type="checkbox" id="includeStores" checked>
-                    <span class="checkmark"></span>
-                    <span class="checkbox-title">stores/ (Persistence & Repository)</span>
-                  </label>
-                  <button type="button" class="btn-subtle" id="addStoreBtn">+ Add Store</button>
-                </div>
-                <div id="storesContainer" class="dynamic-list"></div>
-              </div>
-
-              <div class="divider"></div>
-
-              <!-- Providers List -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <label class="custom-checkbox">
-                    <input type="checkbox" id="includeProviders" checked>
-                    <span class="checkmark"></span>
-                    <span class="checkbox-title">providers/ (Handlers & Custom Providers)</span>
-                  </label>
-                  <button type="button" class="btn-subtle" id="addProviderBtn">+ Add Provider</button>
-                </div>
-                <div id="providersContainer" class="dynamic-list"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Persistence & Optional Components -->
-          <div class="card">
-            <div class="card-header">
-              <h3>Persistence & Domain Guards</h3>
-            </div>
-            <div class="card-body">
-              <div class="checkbox-row">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeRepository" checked>
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">Repository</span>
-                </label>
-                <input type="text" id="repositoryFileName" class="code-input flex-1" value="repository.ts">
-              </div>
-
-              <div class="checkbox-row">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includePolicy">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">Policy (@Policy() Guard)</span>
-                </label>
-                <input type="text" id="policyFileName" class="code-input flex-1" value="policy.ts">
-              </div>
-
-              <div class="checkbox-row">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeInterface">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">TypeScript Interface</span>
-                </label>
-                <input type="text" id="interfaceFileName" class="code-input flex-1" value="interface.ts">
-              </div>
-            </div>
-          </div>
-
-          <div class="tab-footer-actions space-between">
-            <button type="button" class="btn-subtle" data-prev="tab-identity">&larr; Back to Identity</button>
-            <button type="button" class="btn-step" data-next="tab-events">Next: Events, Jobs & DTOs &rarr;</button>
+            </details>
           </div>
         </div>
 
-        <!-- TAB 3: EVENTS, JOBS & DTOS -->
-        <div class="tab-pane" id="tab-events">
-          <!-- DTOs Dynamic List -->
-          <div class="card">
-            <div class="card-header space-between">
-              <div>
-                <div class="card-header-title">
-                  <h3>Data Transfer Objects (dto/)</h3>
-                  <span class="step-chip">Step 3</span>
-                </div>
-                <p class="card-subtitle">Generate validated request/response DTOs with schema rules.</p>
-              </div>
-              <button type="button" class="btn-subtle" id="addDtoBtn">+ Add DTO</button>
-            </div>
-            <div class="card-body" id="dtoContainer">
-              <!-- Dynamic DTO items will be appended here -->
-            </div>
+        <!-- Architecture Layout Switcher Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Architecture Layout</h3>
           </div>
-
-          <!-- Events, Listeners & Background Jobs Dynamic List -->
-          <div class="card">
-            <div class="card-header">
-              <h3>Domain Events, Listeners & Background Jobs</h3>
-              <p class="card-subtitle">Event-driven pub/sub, BullMQ queue workers, and scheduled crons.</p>
-            </div>
-            <div class="card-body">
-              <!-- Events -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <label class="custom-checkbox">
-                    <input type="checkbox" id="includeEvents">
-                    <span class="checkmark"></span>
-                    <span class="checkbox-title">events/ Folder</span>
-                  </label>
-                  <button type="button" class="btn-subtle" id="addEventBtn" style="display: none;">+ Add Event</button>
+          <div class="card-body">
+            <div class="layout-selector-grid">
+              <!-- Flat Option -->
+              <div class="layout-card active" id="modeFlatCard" data-mode="flat">
+                <div class="layout-card-header">
+                  <div class="radio-indicator"></div>
+                  <div>
+                    <strong>Flat Architecture</strong>
+                    <span class="tag tag-preset">Standard NestJS</span>
+                  </div>
                 </div>
-                <div id="eventsContainer" class="dynamic-list" style="display: none;"></div>
+                <p class="layout-card-desc">Keeps controller, service, and module at feature root. Clean and direct for standard domain modules.</p>
+                <div class="layout-mini-tree">
+                  <span class="mini-node">📁 src/features/&lt;name&gt;/</span>
+                  <span class="mini-leaf">📄 controller.ts</span>
+                  <span class="mini-leaf">📄 service.ts</span>
+                  <span class="mini-leaf">📄 module.ts</span>
+                </div>
               </div>
 
-              <div class="divider"></div>
-
-              <!-- Listeners -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <label class="custom-checkbox">
-                    <input type="checkbox" id="includeListeners">
-                    <span class="checkmark"></span>
-                    <span class="checkbox-title">listeners/ Folder</span>
-                  </label>
-                  <button type="button" class="btn-subtle" id="addListenerBtn" style="display: none;">+ Add Listener</button>
+              <!-- Grouped Option -->
+              <div class="layout-card" id="modeGroupedCard" data-mode="grouped">
+                <div class="layout-card-header">
+                  <div class="radio-indicator"></div>
+                  <div>
+                    <strong>Grouped Subfolders</strong>
+                    <span class="tag tag-preset">Enterprise Auth Style</span>
+                  </div>
                 </div>
-                <div id="listenersContainer" class="dynamic-list" style="display: none;"></div>
-              </div>
-
-              <div class="divider"></div>
-
-              <!-- Processors (BullMQ) -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <label class="custom-checkbox">
-                    <input type="checkbox" id="includeProcessors">
-                    <span class="checkmark"></span>
-                    <span class="checkbox-title">processors/ (BullMQ Workers)</span>
-                  </label>
-                  <button type="button" class="btn-subtle" id="addProcessorBtn" style="display: none;">+ Add Processor</button>
+                <p class="layout-card-desc">Isolates multiple controllers, services, stores, and custom providers into structured subfolders.</p>
+                <div class="layout-mini-tree">
+                  <span class="mini-node">📁 src/features/&lt;name&gt;/</span>
+                  <span class="mini-leaf">📁 controllers/</span>
+                  <span class="mini-leaf">📁 services/</span>
+                  <span class="mini-leaf">📁 stores/ &amp; providers/</span>
                 </div>
-                <div id="processorsContainer" class="dynamic-list" style="display: none;"></div>
-              </div>
-
-              <div class="divider"></div>
-
-              <!-- Tasks (Cron) -->
-              <div class="dynamic-group">
-                <div class="dynamic-header space-between">
-                  <label class="custom-checkbox">
-                    <input type="checkbox" id="includeTasks">
-                    <span class="checkmark"></span>
-                    <span class="checkbox-title">tasks/ (Cron / Scheduled Jobs)</span>
-                  </label>
-                  <button type="button" class="btn-subtle" id="addTaskBtn" style="display: none;">+ Add Task</button>
-                </div>
-                <div id="tasksContainer" class="dynamic-list" style="display: none;"></div>
               </div>
             </div>
-          </div>
 
-          <div class="tab-footer-actions space-between">
-            <button type="button" class="btn-subtle" data-prev="tab-arch">&larr; Back to Architecture</button>
-            <button type="button" class="btn-step" data-next="tab-i18n">Next: i18n & Options &rarr;</button>
+            <!-- Hidden native mode pills for backward compatibility with existing tests -->
+            <div style="display: none;">
+              <button type="button" id="modeFlat" data-mode="flat">Flat</button>
+              <button type="button" id="modeGrouped" data-mode="grouped">Grouped</button>
+            </div>
           </div>
         </div>
 
-        <!-- TAB 4: I18N & OPTIONS -->
-        <div class="tab-pane" id="tab-i18n">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-header-title">
-                <h3>Testing & Localization</h3>
-                <span class="step-chip">Step 4</span>
-              </div>
-              <p class="card-subtitle">Generate unit test suites and bilingual localization catalogs.</p>
+        <!-- Flat Mode Components -->
+        <div class="card" id="flatComponentsCard">
+          <div class="card-header">
+            <h3>Core Components <span class="badge">Flat Architecture</span></h3>
+          </div>
+          <div class="card-body">
+            <div class="file-row">
+              <span class="file-label">Service:</span>
+              <input type="text" id="serviceFileName" class="code-input" value="service.ts">
             </div>
-            <div class="card-body">
-              <div class="checkbox-row">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeSpecs">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">Unit Test Specs (*.spec.ts)</span>
-                </label>
-              </div>
-
-              <div class="checkbox-row">
-                <label class="custom-checkbox">
-                  <input type="checkbox" id="includeI18n" checked>
-                  <span class="checkmark"></span>
-                  <span class="checkbox-title">i18n Translation Catalog (src/i18n/{en,ar}/&lt;feature&gt;.json)</span>
-                </label>
-              </div>
+            <div class="file-row">
+              <span class="file-label">Controller:</span>
+              <input type="text" id="controllerFileName" class="code-input" value="controller.ts">
+            </div>
+            <div class="file-row">
+              <span class="file-label">Module:</span>
+              <input type="text" id="moduleFileName" class="code-input" value="module.ts">
             </div>
           </div>
+        </div>
 
-          <div class="tab-footer-actions space-between">
-            <button type="button" class="btn-subtle" data-prev="tab-events">&larr; Back to Events &amp; DTOs</button>
-            <span class="hint" style="margin: 0; align-self: center;">Ready to scaffold? Review the preview on the right &rarr;</span>
+        <!-- Grouped Mode Components -->
+        <div class="card" id="groupedComponentsCard" style="display: none;">
+          <div class="card-header">
+            <h3>Subfolder Components <span class="badge">Grouped Architecture</span></h3>
+          </div>
+          <div class="card-body">
+            <div class="file-row">
+              <span class="file-label">Module (root):</span>
+              <input type="text" id="groupedModuleFileName" class="code-input" value="module.ts">
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Controllers List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <span class="file-label" style="font-weight: 600;">controllers/ Subfolder</span>
+                <button type="button" class="btn-subtle" id="addGroupedCtrlBtn">+ Add Controller</button>
+              </div>
+              <div id="groupedCtrlContainer" class="dynamic-list"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Services List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <span class="file-label" style="font-weight: 600;">services/ Subfolder</span>
+                <button type="button" class="btn-subtle" id="addGroupedSrvBtn">+ Add Service</button>
+              </div>
+              <div id="groupedSrvContainer" class="dynamic-list"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Stores List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeStores" checked>
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">stores/ (Persistence & Repository)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addStoreBtn">+ Add Store</button>
+              </div>
+              <div id="storesContainer" class="dynamic-list"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Providers List -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeProviders" checked>
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">providers/ (Handlers & Custom Providers)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addProviderBtn">+ Add Provider</button>
+              </div>
+              <div id="providersContainer" class="dynamic-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Persistence & Domain Guards -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Persistence & Domain Guards</h3>
+          </div>
+          <div class="card-body">
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeRepository" checked>
+                <span class="checkmark"></span>
+                <span class="checkbox-title">Repository</span>
+              </label>
+              <input type="text" id="repositoryFileName" class="code-input flex-1" value="repository.ts">
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includePolicy">
+                <span class="checkmark"></span>
+                <span class="checkbox-title">Policy (@Policy() Guard)</span>
+              </label>
+              <input type="text" id="policyFileName" class="code-input flex-1" value="policy.ts">
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeInterface">
+                <span class="checkmark"></span>
+                <span class="checkbox-title">TypeScript Interface</span>
+              </label>
+              <input type="text" id="interfaceFileName" class="code-input flex-1" value="interface.ts">
+            </div>
+          </div>
+        </div>
+
+        <!-- DTOs Dynamic List -->
+        <div class="card">
+          <div class="card-header space-between">
+            <div>
+              <h3>Data Transfer Objects (dto/)</h3>
+            </div>
+            <button type="button" class="btn-subtle" id="addDtoBtn">+ Add DTO</button>
+          </div>
+          <div class="card-body" id="dtoContainer">
+            <!-- Dynamic DTO items will be appended here -->
+          </div>
+        </div>
+
+        <!-- Events, Listeners & Background Jobs Dynamic List -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Domain Events, Listeners & Background Jobs</h3>
+          </div>
+          <div class="card-body">
+            <!-- Events -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeEvents">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">events/ Folder</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addEventBtn" style="display: none;">+ Add Event</button>
+              </div>
+              <div id="eventsContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Listeners -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeListeners">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">listeners/ Folder</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addListenerBtn" style="display: none;">+ Add Listener</button>
+              </div>
+              <div id="listenersContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Processors (BullMQ) -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeProcessors">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">processors/ (BullMQ Workers)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addProcessorBtn" style="display: none;">+ Add Processor</button>
+              </div>
+              <div id="processorsContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Tasks (Cron) -->
+            <div class="dynamic-group">
+              <div class="dynamic-header space-between">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="includeTasks">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-title">tasks/ (Cron / Scheduled Jobs)</span>
+                </label>
+                <button type="button" class="btn-subtle" id="addTaskBtn" style="display: none;">+ Add Task</button>
+              </div>
+              <div id="tasksContainer" class="dynamic-list" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testing & Localization -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Testing & Localization</h3>
+          </div>
+          <div class="card-body">
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeSpecs">
+                <span class="checkmark"></span>
+                <span class="checkbox-title">Unit Test Specs (*.spec.ts)</span>
+              </label>
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="includeI18n" checked>
+                <span class="checkmark"></span>
+                <span class="checkbox-title">i18n Translation Catalog (src/i18n/{en,ar}/&lt;feature&gt;.json)</span>
+              </label>
+            </div>
           </div>
         </div>
 

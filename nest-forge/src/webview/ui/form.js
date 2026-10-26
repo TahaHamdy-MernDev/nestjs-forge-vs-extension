@@ -2,13 +2,21 @@ const vscode = acquireVsCodeApi();
 
 // Elements
 const featureNameInput = document.getElementById('featureNameInput');
+const nameChips = document.getElementById('nameChips');
+const pascalChip = document.getElementById('pascalChip');
+const kebabChip = document.getElementById('kebabChip');
+const routeChip = document.getElementById('routeChip');
+const pluralWarning = document.getElementById('pluralWarning');
+
+const routePathInput = document.getElementById('routePathInput');
+const targetPathInput = document.getElementById('targetPathInput');
+const parentModuleText = document.getElementById('parentModuleText');
+const parentModuleInput = document.getElementById('parentModuleInput');
+
 const modeFlat = document.getElementById('modeFlat');
 const modeGrouped = document.getElementById('modeGrouped');
 const modeFlatCard = document.getElementById('modeFlatCard');
 const modeGroupedCard = document.getElementById('modeGroupedCard');
-const routePathInput = document.getElementById('routePathInput');
-const targetPathInput = document.getElementById('targetPathInput');
-const parentModuleInput = document.getElementById('parentModuleInput');
 
 const flatComponentsCard = document.getElementById('flatComponentsCard');
 const serviceFileName = document.getElementById('serviceFileName');
@@ -195,13 +203,22 @@ function pluralize(word) {
   return word + 's';
 }
 
+function capitalize(word) {
+  if (!word) return '';
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function toPascal(words) {
+  return words.map(capitalize).join('');
+}
+
 function deriveNames(raw) {
-  if (!raw) return { kebab: '', pluralKebab: '' };
+  if (!raw) return { kebab: '', pascal: '', pluralKebab: '' };
   const validation = validateIdentifier(raw);
-  if (!validation.valid) return { kebab: '', pluralKebab: '' };
+  if (!validation.valid) return { kebab: '', pascal: '', pluralKebab: '' };
 
   const words = splitWords(raw);
-  if (words.length === 0) return { kebab: '', pluralKebab: '' };
+  if (words.length === 0) return { kebab: '', pascal: '', pluralKebab: '' };
 
   const lastWord = words[words.length - 1];
   const pluralLast = pluralize(lastWord);
@@ -209,6 +226,7 @@ function deriveNames(raw) {
 
   return {
     kebab: toKebab(words),
+    pascal: toPascal(words),
     pluralKebab: toKebab(pluralWords),
   };
 }
@@ -309,6 +327,8 @@ function onFeatureNameChange() {
       previewTree.innerHTML = `<div class="tree-empty" style="color: var(--vscode-errorForeground);">${escapeHtml(identCheck.error)}</div>`;
       fileCountBadge.textContent = '0 files';
       conflictAlert.style.display = 'none';
+      if (nameChips) nameChips.style.display = 'none';
+      if (pluralWarning) pluralWarning.style.display = 'none';
       return;
     }
   }
@@ -320,10 +340,44 @@ function onFeatureNameChange() {
     previewTree.innerHTML = '<div class="tree-empty">Enter a feature name to preview generated structure</div>';
     fileCountBadge.textContent = '0 files';
     conflictAlert.style.display = 'none';
+    if (nameChips) nameChips.style.display = 'none';
+    if (pluralWarning) pluralWarning.style.display = 'none';
     return;
   }
 
   forgeBtn.disabled = false;
+
+  // Render live identity chips
+  if (nameChips) {
+    nameChips.style.display = 'flex';
+  }
+  if (pascalChip) {
+    pascalChip.textContent = names.pascal;
+  }
+  if (kebabChip) {
+    kebabChip.textContent = names.kebab;
+  }
+  if (routeChip) {
+    routeChip.textContent = `/${names.pluralKebab}`;
+  }
+
+  // Suspicious plural check
+  if (pluralWarning) {
+    const warning = window.NestForgeListNaming?.checkSuspiciousPlural
+      ? window.NestForgeListNaming.checkSuspiciousPlural(raw)
+      : null;
+    if (warning) {
+      pluralWarning.textContent = warning;
+      pluralWarning.style.display = 'block';
+    } else {
+      pluralWarning.textContent = '';
+      pluralWarning.style.display = 'none';
+    }
+  }
+
+  if (parentModuleText && !parentModuleText.textContent) {
+    parentModuleText.textContent = parentModuleInput.value.trim() || conventions.parentModule;
+  }
 
   if (!userManuallyEdited.routePath) {
     routePathInput.value = names.pluralKebab;
@@ -613,6 +667,9 @@ window.addEventListener('message', (event) => {
       conventions = message.conventions;
       presetPill.textContent = `${conventions.orm.toUpperCase()} • ${conventions.validator.toUpperCase()}`;
       parentModuleInput.value = conventions.parentModule;
+      if (parentModuleText) {
+        parentModuleText.textContent = conventions.parentModule;
+      }
       if (message.initialTargetPath) {
         conventions.featuresDir = message.initialTargetPath;
       }
@@ -752,7 +809,12 @@ if (modeGroupedCard) {
 featureNameInput.addEventListener('input', onFeatureNameChange);
 routePathInput.addEventListener('input', () => { userManuallyEdited.routePath = true; requestPreview(); });
 targetPathInput.addEventListener('input', () => { userManuallyEdited.targetPath = true; requestPreview(); });
-parentModuleInput.addEventListener('input', requestPreview);
+parentModuleInput.addEventListener('input', () => {
+  if (parentModuleText) {
+    parentModuleText.textContent = parentModuleInput.value.trim() || conventions.parentModule;
+  }
+  requestPreview();
+});
 
 serviceFileName.addEventListener('input', () => { userManuallyEdited.serviceFile = true; requestPreview(); });
 controllerFileName.addEventListener('input', () => { userManuallyEdited.controllerFile = true; requestPreview(); });
@@ -1133,43 +1195,6 @@ forgeBtn.addEventListener('click', () => {
 
 cancelBtn.addEventListener('click', () => {
   vscode.postMessage({ command: 'cancel' });
-});
-
-// Studio Tab Switching & Stepper
-const studioTabs = document.querySelectorAll('.studio-tab');
-const tabPanes = document.querySelectorAll('.tab-pane');
-
-function switchStudioTab(targetId) {
-  studioTabs.forEach((tab) => {
-    const isTarget = tab.getAttribute('data-tab') === targetId;
-    tab.classList.toggle('active', isTarget);
-    tab.setAttribute('aria-selected', isTarget ? 'true' : 'false');
-  });
-
-  tabPanes.forEach((pane) => {
-    pane.classList.toggle('active', pane.id === targetId);
-  });
-}
-
-studioTabs.forEach((tab) => {
-  tab.addEventListener('click', () => {
-    const targetId = tab.getAttribute('data-tab');
-    if (targetId) switchStudioTab(targetId);
-  });
-});
-
-document.addEventListener('click', (e) => {
-  const nextBtn = e.target.closest('[data-next]');
-  if (nextBtn) {
-    const targetId = nextBtn.getAttribute('data-next');
-    if (targetId) switchStudioTab(targetId);
-    return;
-  }
-  const prevBtn = e.target.closest('[data-prev]');
-  if (prevBtn) {
-    const targetId = prevBtn.getAttribute('data-prev');
-    if (targetId) switchStudioTab(targetId);
-  }
 });
 
 // Keyboard shortcuts (Cmd/Ctrl + Enter to trigger scaffold)

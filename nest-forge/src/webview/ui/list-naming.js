@@ -54,7 +54,23 @@
     return { suffix: item ? item.suffix : undefined, custom: trimmed };
   }
 
-  const api = { ROLES, autoName, itemName, nextItem, applyEdit };
+  function checkSuspiciousPlural(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    const lower = trimmed.toLowerCase();
+    const uncountables = new Set(['news', 'information', 'feedback', 'data', 'auth']);
+    if (uncountables.has(lower)) {
+      return `"${trimmed}" is uncountable; singular and plural routes are identical.`;
+    }
+    // Ending in 's' but not standard 'status', 'bus', 'address'
+    if (lower.endsWith('s') && !/(status|bus|address|lens|focus)$/i.test(lower)) {
+      return `"${trimmed}" already ends in "s"; double check if pluralization is needed.`;
+    }
+    return null;
+  }
+
+  const api = { ROLES, autoName, itemName, nextItem, applyEdit, checkSuspiciousPlural };
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
   } else {
