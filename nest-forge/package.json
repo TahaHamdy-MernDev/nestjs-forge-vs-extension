@@ -2,12 +2,12 @@
   "name": "nest-forge",
   "displayName": "Nest Forge",
   "description": "Interactive NestJS feature module generator for VS Code / Antigravity with live preview and AST-based registration",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "publisher": "taha",
   "icon": "resources/logo.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/taha/nest-forge"
+    "url": "https://github.com/TahaHamdy-MernDev/nestjs-forge-vs-extension"
   },
   "engines": {
     "vscode": "^1.90.0"

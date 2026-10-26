@@ -1,3 +1,21 @@
+# Dependencies
 node_modules/
+
+# Build outputs & packages
 dist/
+out/
 *.vsix
+package/
+
+# Test & coverage
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+*.tsbuildinfo

@@ -1,0 +1,47 @@
+name: CI & Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Build, Lint & Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: nest-forge
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: nest-forge/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Compile Extension
+        run: pnpm run compile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Run Test Suite
+        run: pnpm run test
+
+      - name: Package VSIX
+        run: pnpm run package

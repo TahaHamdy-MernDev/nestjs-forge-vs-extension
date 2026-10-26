@@ -2,6 +2,17 @@
 
 All notable changes to the "Nest Forge" extension will be documented in this file.
 
+## [0.4.2] - 2026-10-26
+
+### Repository
+- Enhance root repository structure for GitHub: add root LICENSE, clean repository URLs, and comprehensive gitignore rules.
+
+## [0.4.1] - 2026-10-26
+
+### UI
+- Component toggle cards, presets, and layout segmented control for feature generator.
+- Single-page layout with identity header and advanced configuration section.
+
 ## [0.3.0] - 2026-10-25
 
 ### Security

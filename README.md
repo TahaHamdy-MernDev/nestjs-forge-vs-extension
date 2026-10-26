@@ -1,5 +1,9 @@
 # Nest Forge 🔨
 
+[![CI & Tests](https://github.com/TahaHamdy-MernDev/nestjs-forge-vs-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/TahaHamdy-MernDev/nestjs-forge-vs-extension/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.90.0-007ACC?logo=visualstudiocode)](https://code.visualstudio.com/)
+
 An intelligent, visual VS Code / Antigravity extension to scaffold NestJS feature modules with opinionated conventions, live tree preview, and AST-powered parent module registration.
 
 ## Features
@@ -34,5 +38,15 @@ Nest Forge supports VS Code Workspace Trust in limited mode. When a workspace is
 3. Fill in or customize the generated files.
 4. Click **🔨 Forge Feature**.
 
+## Development & Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full instructions on local setup, building, running tests, and debugging the extension.
+
+```bash
+cd nest-forge
+pnpm install
+pnpm run compile
+pnpm run test
+```
+
 ## License
-MIT
+MIT © [Taha](LICENSE)
